@@ -11,6 +11,11 @@ interface PublicGallery {
   coverUrl: string | null;
 }
 
+// Local cover images — fallback when R2 presigned URLs fail
+const LOCAL_COVERS: Record<string, string> = {
+  cmn7z9eq80000yj1upxufn8g3: "/covers/exponential-dinner.webp",
+};
+
 export default function Home() {
   const [galleries, setGalleries] = useState<PublicGallery[]>([]);
 
@@ -42,9 +47,9 @@ export default function Home() {
               href={`/gallery/${g.id}`}
               className="group relative aspect-[16/10] overflow-hidden bg-gray-100 rounded-sm"
             >
-              {g.coverUrl && (
+              {(LOCAL_COVERS[g.id] || g.coverUrl) && (
                 <img
-                  src={g.coverUrl}
+                  src={LOCAL_COVERS[g.id] || g.coverUrl!}
                   alt={g.name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />

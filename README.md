@@ -10,7 +10,7 @@ Ekitaldi is a self-hosted photo gallery platform. It has a frontend, a backend, 
 
 The whole thing runs on free tiers: Vercel for hosting, Neon for the database, Cloudflare R2 for photo storage. As long as you stay under 10GB of storage on R2 (that's hundreds of galleries), it's free forever. $0/month.
 
-You can see it running in production at [ekitaldi.com](https://ekitaldi.com).
+You can see it running in production at [ekitaldi.org](https://ekitaldi.org).
 
 ## What it does
 

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getPresignedUrl } from "@/lib/r2";
 
+// Presigned URLs expire — never statically cache this route
+export const dynamic = "force-dynamic";
+
 // Public gallery list — no auth, returns only public-safe info
 // Cover thumbnails use cached presigned URLs (fast after first request)
 export async function GET() {
