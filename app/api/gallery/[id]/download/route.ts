@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getPresignedUrl } from "@/lib/r2";
+import { getPublicUrl } from "@/lib/r2";
 import { verifyGalleryAccess } from "@/lib/gallery-auth";
 
 // Download a single photo by photoId query param
@@ -32,10 +32,10 @@ export async function GET(
     }
 
     const photo = gallery.photos[0];
-    const presignedUrl = await getPresignedUrl(photo.r2Key);
+    const publicUrl = getPublicUrl(photo.r2Key);
 
     // Fetch from R2 and stream back with download headers
-    const r2Response = await fetch(presignedUrl);
+    const r2Response = await fetch(publicUrl);
     if (!r2Response.ok) {
       return NextResponse.json({ error: "Download failed" }, { status: 500 });
     }

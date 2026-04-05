@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getPresignedUrl } from "@/lib/r2";
-
-// Presigned URLs expire — never statically cache this route
-export const dynamic = "force-dynamic";
+import { getPublicUrl } from "@/lib/r2";
 
 // Public gallery list — no auth, returns only public-safe info
-// Cover thumbnails use cached presigned URLs (fast after first request)
 export async function GET() {
   try {
     const allGalleries = await db.gallery.findMany({
@@ -20,24 +16,22 @@ export async function GET() {
       },
     });
 
-    const result = await Promise.all(
-      allGalleries.map(async (g) => {
-        const coverPhoto = g.coverPhotoId
-          ? g.photos.find((p) => p.id === g.coverPhotoId)
-          : g.photos[0];
+    const result = allGalleries.map((g) => {
+      const coverPhoto = g.coverPhotoId
+        ? g.photos.find((p) => p.id === g.coverPhotoId)
+        : g.photos[0];
 
-        return {
-          id: g.id,
-          name: g.name,
-          date: g.date,
-          photoCount: g._count.photos,
-          hasPassword: !!g.passwordHash,
-          coverUrl: coverPhoto?.thumbR2Key
-            ? await getPresignedUrl(coverPhoto.thumbR2Key)
-            : null,
-        };
-      })
-    );
+      return {
+        id: g.id,
+        name: g.name,
+        date: g.date,
+        photoCount: g._count.photos,
+        hasPassword: !!g.passwordHash,
+        coverUrl: coverPhoto?.thumbR2Key
+          ? getPublicUrl(coverPhoto.thumbR2Key)
+          : null,
+      };
+    });
 
     return NextResponse.json(result);
   } catch (err: unknown) {

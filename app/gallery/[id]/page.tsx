@@ -125,6 +125,7 @@ export default function GalleryPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [thumbRect, setThumbRect] = useState<ThumbnailRect | null>(null);
   const [showShare, setShowShare] = useState(false);
+  const [r2Blocked, setR2Blocked] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchGallery = useCallback(async (cursor?: number) => {
@@ -152,6 +153,17 @@ export default function GalleryPage() {
   useEffect(() => {
     fetchGallery();
   }, [fetchGallery]);
+
+  // Detect if R2 storage is blocked (e.g. Spanish ISP blocking Cloudflare during La Liga matches)
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const img = new Image();
+    const timeout = setTimeout(() => { setR2Blocked(true); }, 8000);
+    img.onload = () => clearTimeout(timeout);
+    img.onerror = () => { clearTimeout(timeout); setR2Blocked(true); };
+    img.src = photos[0].thumbUrl;
+    return () => clearTimeout(timeout);
+  }, [photos]);
 
   // Infinite scroll — observe sentinel element
   useEffect(() => {
@@ -254,6 +266,22 @@ export default function GalleryPage() {
 
   return (
     <div className="bg-white">
+      {/* R2 blocked banner */}
+      {r2Blocked && (
+        <div className="fixed top-0 inset-x-0 z-50 bg-amber-50 border-b border-amber-200 px-4 py-3 text-center">
+          <p className="text-sm text-amber-900">
+            <span className="font-semibold">Photos can&apos;t load right now.</span>{" "}
+            Your ISP is blocking our image server (thanks, La Liga). Try again after the match ends, or use a VPN.
+          </p>
+          <button
+            onClick={() => setR2Blocked(false)}
+            className="absolute top-2 right-3 text-amber-400 hover:text-amber-600 text-lg"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       {/* Cover / Hero Section */}
       {coverPhoto && (
         <section className="relative h-screen w-full select-none overflow-hidden">

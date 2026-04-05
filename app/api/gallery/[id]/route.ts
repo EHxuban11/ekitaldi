@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { deleteGalleryFromR2, getPresignedUrl } from "@/lib/r2";
+import { deleteGalleryFromR2, getPublicUrl } from "@/lib/r2";
 import { hashPassword, verifyGalleryAccess } from "@/lib/gallery-auth";
 
 // Get gallery details (public — used by gallery page)
@@ -50,16 +50,14 @@ export async function GET(
     const page = sorted.slice(cursor, cursor + limit);
     const hasMore = cursor + limit < sorted.length;
 
-    const photosWithUrls = await Promise.all(
-      page.map(async (p) => ({
-        id: p.id,
-        filename: p.filename,
-        width: p.width,
-        height: p.height,
-        url: await getPresignedUrl(p.r2Key),
-        thumbUrl: await getPresignedUrl(p.thumbR2Key),
-      }))
-    );
+    const photosWithUrls = page.map((p) => ({
+      id: p.id,
+      filename: p.filename,
+      width: p.width,
+      height: p.height,
+      url: getPublicUrl(p.r2Key),
+      thumbUrl: getPublicUrl(p.thumbR2Key),
+    }));
 
     return NextResponse.json({
       id: gallery.id,

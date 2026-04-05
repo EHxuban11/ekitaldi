@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { getPresignedUrl } from "@/lib/r2";
+import { getPublicUrl } from "@/lib/r2";
 
 // List all galleries (admin only)
 export async function GET() {
@@ -19,25 +19,23 @@ export async function GET() {
       },
     });
 
-    const result = await Promise.all(
-      allGalleries.map(async (g) => {
-        const coverPhoto = g.coverPhotoId
-          ? g.photos.find((p) => p.id === g.coverPhotoId)
-          : g.photos[0];
+    const result = allGalleries.map((g) => {
+      const coverPhoto = g.coverPhotoId
+        ? g.photos.find((p) => p.id === g.coverPhotoId)
+        : g.photos[0];
 
-        return {
-          id: g.id,
-          name: g.name,
-          date: g.date,
-          createdAt: g.createdAt,
-          hasPassword: !!g.passwordHash,
-          photoCount: g._count.photos,
-          coverThumb: coverPhoto?.thumbR2Key
-            ? await getPresignedUrl(coverPhoto.thumbR2Key)
-            : null,
-        };
-      })
-    );
+      return {
+        id: g.id,
+        name: g.name,
+        date: g.date,
+        createdAt: g.createdAt,
+        hasPassword: !!g.passwordHash,
+        photoCount: g._count.photos,
+        coverThumb: coverPhoto?.thumbR2Key
+          ? getPublicUrl(coverPhoto.thumbR2Key)
+          : null,
+      };
+    });
 
     return NextResponse.json(result);
   } catch (err: unknown) {
