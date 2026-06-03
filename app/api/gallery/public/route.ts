@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getPublicUrl } from "@/lib/r2";
 
+// Always read fresh from the DB — otherwise Next.js statically caches this
+// route at build time and the homepage never shows newly-added galleries.
+export const dynamic = "force-dynamic";
+
 // Public gallery list — no auth, returns only public-safe info
 export async function GET() {
   try {
