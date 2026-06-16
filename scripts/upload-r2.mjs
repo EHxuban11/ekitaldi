@@ -121,11 +121,15 @@ async function main() {
     const label = `[${String(i + 1).padStart(3)}/${files.length}] ${file}`;
     try {
       const buf = fs.readFileSync(path.join(folder, file));
-      const meta = await sharp(buf).metadata();
 
       let full = sharp(buf).rotate();
       if (opts.max) full = full.resize(opts.max, opts.max, { fit: "inside", withoutEnlargement: true });
       const fullBuffer = await full.jpeg({ quality: 92 }).toBuffer();
+
+      // Dimensions of the actual stored image (rotated, and resized if --max) so
+      // portrait shots aren't saved as landscape and stretched by the grid's
+      // aspect-ratio.
+      const meta = await sharp(fullBuffer).metadata();
 
       const thumbBuffer = await sharp(buf)
         .rotate()
