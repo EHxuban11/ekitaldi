@@ -42,9 +42,6 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         const fileBuffer = Buffer.from(arrayBuffer);
 
-        // Get metadata before processing
-        const metadata = await sharp(fileBuffer).metadata();
-
         // Full-size JPEG: strip EXIF by re-encoding, auto-rotate
         const fullBuffer = await sharp(fileBuffer)
           .rotate()
@@ -57,6 +54,11 @@ export async function POST(request: NextRequest) {
           .resize(600, undefined, { fit: "inside", withoutEnlargement: true })
           .webp({ quality: 80 })
           .toBuffer();
+
+        // Read dimensions from the ROTATED output, not the raw frame — otherwise
+        // portrait shots (EXIF-rotated) get stored as landscape and the masonry
+        // grid stretches them via aspect-ratio.
+        const metadata = await sharp(fullBuffer).metadata();
 
         const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const r2Key = `galleries/${gallery.id}/${safeFilename}`;
