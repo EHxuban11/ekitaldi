@@ -37,5 +37,6 @@ yarn-error.log*
 next-env.d.ts
 .env*
 
-# Claude Code local state
-.claude/
+# Claude Code local state (skills are versioned in the repo, the rest is local)
+.claude/*
+!.claude/skills/
