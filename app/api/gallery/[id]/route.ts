@@ -14,6 +14,7 @@ export async function GET(
       where: { id: params.id },
       include: {
         photos: { orderBy: { order: "asc" } },
+        personClusters: { orderBy: { size: "desc" } },
       },
     });
 
@@ -44,9 +45,16 @@ export async function GET(
       return a.order - b.order;
     });
 
-    // Pagination: ?cursor=<index>&limit=<n> (default 30)
+    // Pagination: ?cursor=<index>&limit=<n> (default 30). Face galleries return
+    // the full set in one response so person-filtering spans the whole gallery;
+    // non-face galleries keep the exact same paginated behavior as before.
+    const facesOn = gallery.faceRecognitionEnabled;
     const cursor = parseInt(request.nextUrl.searchParams.get("cursor") || "0", 10);
-    const limit = parseInt(request.nextUrl.searchParams.get("limit") || "30", 10);
+    const defaultLimit = facesOn ? sorted.length : 30;
+    const limit = parseInt(
+      request.nextUrl.searchParams.get("limit") || String(defaultLimit),
+      10
+    );
     const page = sorted.slice(cursor, cursor + limit);
     const hasMore = cursor + limit < sorted.length;
 
@@ -57,6 +65,7 @@ export async function GET(
       height: p.height,
       url: getPublicUrl(p.r2Key),
       thumbUrl: getPublicUrl(p.thumbR2Key),
+      ...(facesOn ? { personIds: p.personIds } : {}),
     }));
 
     return NextResponse.json({
@@ -69,6 +78,18 @@ export async function GET(
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
       photos: photosWithUrls,
+      faceRecognitionEnabled: facesOn,
+      ...(facesOn
+        ? {
+            clusters: gallery.personClusters.map((c) => ({
+              personId: c.personId,
+              size: c.size,
+              color: c.color,
+              displayName: c.displayName,
+              exampleUrls: c.exampleKeys.map(getPublicUrl),
+            })),
+          }
+        : {}),
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";

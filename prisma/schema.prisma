@@ -16,7 +16,15 @@ model Gallery {
   createdAt    DateTime       @default(now()) @map("created_at")
   brandingJson String?        @map("branding_json")
   coverPhotoId String?        @map("cover_photo_id")
-  photos       GalleryPhoto[]
+
+  // Opt-in face recognition. Existing galleries default to false and keep the
+  // exact same render/response path — no regressions. Only galleries published
+  // with the --faces pipeline flip this on.
+  faceRecognitionEnabled Boolean @default(false) @map("face_recognition_enabled")
+
+  photos         GalleryPhoto[]
+  personClusters PersonCluster[]
+  faces          Face[]
 
   @@map("galleries")
 }
@@ -31,7 +39,53 @@ model GalleryPhoto {
   height     Int?
   thumbR2Key String  @map("thumb_r2_key")
 
+  // Denormalized list of cluster personIds appearing in this photo (e.g.
+  // ["person_001","person_004"]). Empty for non-face galleries. This array is
+  // what powers "find me in the photos" filtering in the UI.
+  personIds String[] @default([]) @map("person_ids")
+
   gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  faces   Face[]
 
   @@map("gallery_photos")
+}
+
+// A clustered person within ONE gallery (anonymous: person_001, person_002…).
+// Scoped per gallery so personIds never collide across weddings.
+model PersonCluster {
+  id          String   @id @default(cuid())
+  galleryId   String   @map("gallery_id")
+  personId    String   @map("person_id") // e.g. "person_001" (person_001 = most photographed)
+  size        Int      @default(0) // number of face detections in the cluster
+  color       String   @default("#D4D4D4")
+  displayName String?  @map("display_name") // null = anonymous; room for naming later
+  exampleKeys String[] @default([]) @map("example_keys") // sample thumb r2 keys for an avatar
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  faces   Face[]
+
+  @@unique([galleryId, personId])
+  @@map("person_clusters")
+}
+
+// One detected face (bbox + confidence). Stored from the pipeline for future
+// bbox overlays; the current UI filters off GalleryPhoto.personIds and does not
+// yet render boxes.
+model Face {
+  id              String   @id @default(cuid())
+  galleryId       String   @map("gallery_id")
+  photoId         String   @map("photo_id")
+  personClusterId String?  @map("person_cluster_id")
+  personId        String?  @map("person_id") // denormalized cluster personId, null = noise
+  bbox            Json // [x1, y1, x2, y2]
+  confidence      Float?
+  faceIndex       Int      @map("face_index")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  gallery Gallery        @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  photo   GalleryPhoto   @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  cluster PersonCluster? @relation(fields: [personClusterId], references: [id], onDelete: SetNull)
+
+  @@map("faces")
 }

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 import GalleryLightbox, { ThumbnailRect } from "@/components/GalleryLightbox";
 import ShareModal from "@/components/ShareModal";
+import PeopleBar, { Cluster } from "@/components/PeopleBar";
+import FaceIndicator, { ClusterInfo, personLabel } from "@/components/FaceIndicator";
 
 // Row-by-row masonry: assigns each photo to the shortest column
 function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPhoto[][] {
@@ -20,9 +22,11 @@ function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPho
   }, [photos, colCount]);
 }
 
-function MasonryGrid({ photos, onPhotoClick }: {
+function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson }: {
   photos: GalleryPhoto[];
   onPhotoClick: (index: number, rect: ThumbnailRect) => void;
+  clusterMap?: Map<string, ClusterInfo>;
+  onSelectPerson?: (personId: string) => void;
 }) {
   const [colCount, setColCount] = useState(4);
 
@@ -81,6 +85,13 @@ function MasonryGrid({ photos, onPhotoClick }: {
                   }
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" />
+                {clusterMap && onSelectPerson && photo.personIds && photo.personIds.length > 0 && (
+                  <FaceIndicator
+                    personIds={photo.personIds}
+                    clusterMap={clusterMap}
+                    onSelect={onSelectPerson}
+                  />
+                )}
               </div>
             );
           })}
@@ -97,6 +108,7 @@ interface GalleryPhoto {
   height: number | null;
   url: string;
   thumbUrl: string;
+  personIds?: string[];
 }
 
 interface GalleryData {
@@ -108,6 +120,8 @@ interface GalleryData {
   totalPhotos?: number;
   nextCursor?: number | null;
   photos?: GalleryPhoto[];
+  faceRecognitionEnabled?: boolean;
+  clusters?: Cluster[];
 }
 
 export default function GalleryPage() {
@@ -126,6 +140,7 @@ export default function GalleryPage() {
   const [thumbRect, setThumbRect] = useState<ThumbnailRect | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [r2Blocked, setR2Blocked] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchGallery = useCallback(async (cursor?: number) => {
@@ -183,6 +198,21 @@ export default function GalleryPage() {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [nextCursor, loadingMore, fetchGallery]);
+
+  // Face-recognition derived state (no-ops for normal galleries).
+  const clusters: Cluster[] = useMemo(() => gallery?.clusters ?? [], [gallery]);
+  const facesEnabled = !!gallery?.faceRecognitionEnabled && clusters.length > 0;
+  const clusterMap = useMemo(() => {
+    const m = new Map<string, ClusterInfo>();
+    for (const c of clusters) {
+      m.set(c.personId, { personId: c.personId, color: c.color, displayName: c.displayName });
+    }
+    return m;
+  }, [clusters]);
+  const displayedPhotos = useMemo(() => {
+    if (!facesEnabled || !selectedPerson) return photos;
+    return photos.filter((p) => p.personIds?.includes(selectedPerson));
+  }, [facesEnabled, selectedPerson, photos]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -361,18 +391,47 @@ export default function GalleryPage() {
           </div>
         </header>
 
-        <div className="px-2 pb-6 sm:px-5 sm:pb-8">
-          <MasonryGrid photos={photos} onPhotoClick={(index, rect) => { setThumbRect(rect); setLightboxIndex(index); }} />
+        {facesEnabled && (
+          <PeopleBar
+            clusters={clusters}
+            selected={selectedPerson}
+            onSelect={setSelectedPerson}
+          />
+        )}
 
-          {nextCursor !== null && (
+        <div className="px-2 pb-6 sm:px-5 sm:pb-8">
+          {facesEnabled && selectedPerson && (
+            <div className="flex items-center justify-between px-2 sm:px-3 pt-1 pb-3">
+              <span className="text-xs" style={{ color: "rgba(30,30,30,0.55)" }}>
+                {personLabel(selectedPerson, clusterMap.get(selectedPerson)?.displayName)} ·{" "}
+                {displayedPhotos.length} photo{displayedPhotos.length !== 1 ? "s" : ""}
+              </span>
+              <button
+                onClick={() => setSelectedPerson(null)}
+                className="text-xs underline"
+                style={{ color: "rgba(30,30,30,0.55)" }}
+              >
+                Show all photos
+              </button>
+            </div>
+          )}
+
+          <MasonryGrid
+            photos={displayedPhotos}
+            onPhotoClick={(index, rect) => { setThumbRect(rect); setLightboxIndex(index); }}
+            clusterMap={facesEnabled ? clusterMap : undefined}
+            onSelectPerson={facesEnabled ? setSelectedPerson : undefined}
+          />
+
+          {!selectedPerson && nextCursor !== null && (
             <div ref={sentinelRef} className="flex justify-center py-8">
               <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
             </div>
           )}
 
-          {nextCursor === null && photos.length > 0 && (
+          {(selectedPerson || nextCursor === null) && displayedPhotos.length > 0 && (
             <p className="text-center py-6 text-xs" style={{ color: "rgba(30,30,30,0.3)" }}>
-              {totalPhotos} photos
+              {selectedPerson ? displayedPhotos.length : totalPhotos} photos
             </p>
           )}
         </div>
@@ -381,7 +440,7 @@ export default function GalleryPage() {
       {/* Lightbox */}
       {lightboxIndex !== null && (
         <GalleryLightbox
-          photos={photos}
+          photos={displayedPhotos}
           currentIndex={lightboxIndex}
           onClose={() => { setLightboxIndex(null); setThumbRect(null); }}
           onNavigate={setLightboxIndex}
