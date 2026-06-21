@@ -18,9 +18,12 @@ model Gallery {
   coverPhotoId String?        @map("cover_photo_id")
 
   // Opt-in face recognition. Existing galleries default to false and keep the
-  // exact same render/response path — no regressions. Only galleries published
+  // exact same render/response path, no regressions. Only galleries published
   // with the --faces pipeline flip this on.
   faceRecognitionEnabled Boolean @default(false) @map("face_recognition_enabled")
+
+  // UI language for the gallery page: "en" (default), "eu" (Basque), "es".
+  language String @default("en")
 
   photos         GalleryPhoto[]
   personClusters PersonCluster[]
@@ -58,8 +61,9 @@ model PersonCluster {
   personId    String   @map("person_id") // e.g. "person_001" (person_001 = most photographed)
   size        Int      @default(0) // number of face detections in the cluster
   color       String   @default("#D4D4D4")
+  avatarKey   String?  @map("avatar_key") // r2 key of a cropped face thumbnail for the chip
   displayName String?  @map("display_name") // null = anonymous; room for naming later
-  exampleKeys String[] @default([]) @map("example_keys") // sample thumb r2 keys for an avatar
+  exampleKeys String[] @default([]) @map("example_keys") // sample thumb r2 keys (fallback)
   createdAt   DateTime @default(now()) @map("created_at")
 
   gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)

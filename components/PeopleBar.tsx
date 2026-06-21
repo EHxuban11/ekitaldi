@@ -4,13 +4,14 @@
 // gallery's grid. Tapping a person filters the grid to their photos; "All
 // photos" clears the filter. Only rendered when clusters exist.
 
-import { personLabel } from "./FaceIndicator";
+import { getStrings, personLabel } from "@/lib/i18n";
 
 export interface Cluster {
   personId: string;
   size: number;
   color: string;
   displayName?: string | null;
+  avatarUrl?: string;
   exampleUrls?: string[];
 }
 
@@ -18,12 +19,15 @@ export default function PeopleBar({
   clusters,
   selected,
   onSelect,
+  lang,
 }: {
   clusters: Cluster[];
   selected: string | null;
   onSelect: (personId: string | null) => void;
+  lang?: string | null;
 }) {
   if (!clusters || clusters.length === 0) return null;
+  const t = getStrings(lang);
 
   return (
     <div className="px-4 sm:px-6 pt-3 pb-1">
@@ -49,7 +53,7 @@ export default function PeopleBar({
           className="uppercase"
           style={{ fontSize: 10, letterSpacing: "1px", color: "rgba(30,30,30,0.5)" }}
         >
-          {clusters.length} people in this gallery — tap to find someone
+          {t.peopleHeader(clusters.length)}
         </span>
       </div>
 
@@ -69,12 +73,12 @@ export default function PeopleBar({
             color: selected === null ? "white" : "rgb(30,30,30)",
           }}
         >
-          All photos
+          {t.allPhotos}
         </button>
 
         {clusters.map((c) => {
           const active = selected === c.personId;
-          const avatar = c.exampleUrls?.[0];
+          const avatar = c.avatarUrl || c.exampleUrls?.[0];
           return (
             <button
               key={c.personId}
@@ -92,7 +96,7 @@ export default function PeopleBar({
                 background: active ? "rgb(30,30,30)" : "white",
                 color: active ? "white" : "rgb(30,30,30)",
               }}
-              title={`${personLabel(c.personId, c.displayName)} · ${c.size} detections`}
+              title={`${personLabel(c.personId, c.displayName, lang)} (${c.size})`}
             >
               {avatar ? (
                 <img
@@ -114,7 +118,7 @@ export default function PeopleBar({
                   style={{ width: 12, height: 12, borderRadius: "50%", background: c.color }}
                 />
               )}
-              {personLabel(c.personId, c.displayName)}
+              {personLabel(c.personId, c.displayName, lang)}
               <span style={{ opacity: 0.55, fontWeight: 500 }}>{c.size}</span>
             </button>
           );

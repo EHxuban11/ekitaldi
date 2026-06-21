@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import GalleryLightbox, { ThumbnailRect } from "@/components/GalleryLightbox";
 import ShareModal from "@/components/ShareModal";
 import PeopleBar, { Cluster } from "@/components/PeopleBar";
-import FaceIndicator, { ClusterInfo, personLabel } from "@/components/FaceIndicator";
+import FaceIndicator, { ClusterInfo } from "@/components/FaceIndicator";
+import { getStrings, personLabel } from "@/lib/i18n";
 
 // Row-by-row masonry: assigns each photo to the shortest column
 function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPhoto[][] {
@@ -22,11 +23,12 @@ function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPho
   }, [photos, colCount]);
 }
 
-function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson }: {
+function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson, lang }: {
   photos: GalleryPhoto[];
   onPhotoClick: (index: number, rect: ThumbnailRect) => void;
   clusterMap?: Map<string, ClusterInfo>;
   onSelectPerson?: (personId: string) => void;
+  lang?: string | null;
 }) {
   const [colCount, setColCount] = useState(4);
 
@@ -90,6 +92,7 @@ function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson }: {
                     personIds={photo.personIds}
                     clusterMap={clusterMap}
                     onSelect={onSelectPerson}
+                    lang={lang}
                   />
                 )}
               </div>
@@ -122,6 +125,7 @@ interface GalleryData {
   photos?: GalleryPhoto[];
   faceRecognitionEnabled?: boolean;
   clusters?: Cluster[];
+  language?: string;
 }
 
 export default function GalleryPage() {
@@ -214,6 +218,34 @@ export default function GalleryPage() {
     return photos.filter((p) => p.personIds?.includes(selectedPerson));
   }, [facesEnabled, selectedPerson, photos]);
 
+  const t = getStrings(gallery?.language);
+  const lang = gallery?.language ?? null;
+
+  // Keep the URL in sync with the open photo so a specific photo can be shared.
+  // Works across all ekitaldi galleries, not just face-recognition ones.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const open = lightboxIndex !== null ? displayedPhotos[lightboxIndex] : null;
+    if (open) url.searchParams.set("p", open.id);
+    else url.searchParams.delete("p");
+    window.history.replaceState(null, "", url.toString());
+  }, [lightboxIndex, displayedPhotos]);
+
+  // Deep link: open the photo referenced by ?p=<id> once photos load.
+  const openedFromUrl = useRef(false);
+  useEffect(() => {
+    if (openedFromUrl.current || photos.length === 0 || typeof window === "undefined") return;
+    const pid = new URLSearchParams(window.location.search).get("p");
+    openedFromUrl.current = true;
+    if (!pid) return;
+    const idx = photos.findIndex((p) => p.id === pid);
+    if (idx >= 0) {
+      setThumbRect(null);
+      setLightboxIndex(idx);
+    }
+  }, [photos]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
@@ -224,7 +256,7 @@ export default function GalleryPage() {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        setAuthError("Incorrect password");
+        setAuthError(t.incorrectPassword);
         return;
       }
       await fetchGallery();
@@ -270,7 +302,7 @@ export default function GalleryPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
+            placeholder={t.enterPassword}
             className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 mb-3"
             autoFocus
           />
@@ -281,7 +313,7 @@ export default function GalleryPage() {
             type="submit"
             className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
           >
-            View Gallery
+            {t.viewGallery}
           </button>
         </form>
       </div>
@@ -331,7 +363,7 @@ export default function GalleryPage() {
 
           <div className="absolute inset-0 z-10 flex flex-col justify-between text-white px-5 py-12 sm:px-6 sm:py-20">
             <p className="text-[10px] tracking-[2px] uppercase text-white">
-              Photo Gallery
+              {t.photoGallery}
             </p>
             <div className="pb-6 sm:pb-12">
               <h1
@@ -350,7 +382,7 @@ export default function GalleryPage() {
                 className="inline-flex items-center border border-white text-white text-[11px] font-medium uppercase hover:bg-white/10 transition-all duration-250"
                 style={{ letterSpacing: "1.65px", padding: "0 24px", height: "40px", marginTop: "24px" }}
               >
-                View Gallery
+                {t.viewGallery}
               </button>
             </div>
           </div>
@@ -369,7 +401,7 @@ export default function GalleryPage() {
                 {gallery.name}
               </h1>
               <p className="uppercase hidden sm:block" style={{ fontSize: "9px", color: "rgba(30,30,30,0.6)", marginTop: "4px" }}>
-                Photo Gallery
+                {t.photoGallery}
               </p>
             </div>
             <div className="flex items-center">
@@ -396,6 +428,7 @@ export default function GalleryPage() {
             clusters={clusters}
             selected={selectedPerson}
             onSelect={setSelectedPerson}
+            lang={lang}
           />
         )}
 
@@ -403,15 +436,15 @@ export default function GalleryPage() {
           {facesEnabled && selectedPerson && (
             <div className="flex items-center justify-between px-2 sm:px-3 pt-1 pb-3">
               <span className="text-xs" style={{ color: "rgba(30,30,30,0.55)" }}>
-                {personLabel(selectedPerson, clusterMap.get(selectedPerson)?.displayName)} ·{" "}
-                {displayedPhotos.length} photo{displayedPhotos.length !== 1 ? "s" : ""}
+                {personLabel(selectedPerson, clusterMap.get(selectedPerson)?.displayName, lang)} ·{" "}
+                {t.photosCount(displayedPhotos.length)}
               </span>
               <button
                 onClick={() => setSelectedPerson(null)}
                 className="text-xs underline"
                 style={{ color: "rgba(30,30,30,0.55)" }}
               >
-                Show all photos
+                {t.showAll}
               </button>
             </div>
           )}
@@ -421,6 +454,7 @@ export default function GalleryPage() {
             onPhotoClick={(index, rect) => { setThumbRect(rect); setLightboxIndex(index); }}
             clusterMap={facesEnabled ? clusterMap : undefined}
             onSelectPerson={facesEnabled ? setSelectedPerson : undefined}
+            lang={lang}
           />
 
           {!selectedPerson && nextCursor !== null && (
@@ -431,7 +465,7 @@ export default function GalleryPage() {
 
           {(selectedPerson || nextCursor === null) && displayedPhotos.length > 0 && (
             <p className="text-center py-6 text-xs" style={{ color: "rgba(30,30,30,0.3)" }}>
-              {selectedPerson ? displayedPhotos.length : totalPhotos} photos
+              {t.photosCount(selectedPerson ? displayedPhotos.length : totalPhotos)}
             </p>
           )}
         </div>

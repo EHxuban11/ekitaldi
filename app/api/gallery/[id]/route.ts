@@ -33,6 +33,7 @@ export async function GET(
         name: gallery.name,
         hasPassword,
         authenticated: false,
+        language: gallery.language,
       });
     }
 
@@ -75,6 +76,7 @@ export async function GET(
       hasPassword,
       authenticated: true,
       coverPhotoId: gallery.coverPhotoId,
+      language: gallery.language,
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
       photos: photosWithUrls,
@@ -86,6 +88,7 @@ export async function GET(
               size: c.size,
               color: c.color,
               displayName: c.displayName,
+              avatarUrl: c.avatarKey ? getPublicUrl(c.avatarKey) : undefined,
               exampleUrls: c.exampleKeys.map(getPublicUrl),
             })),
           }

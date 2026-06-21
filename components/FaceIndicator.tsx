@@ -2,7 +2,9 @@
 
 // Per-photo person chips, revealed on hover over a gallery tile. Clicking a chip
 // selects that person (filters the gallery to their photos). Only rendered for
-// face-recognition galleries — see app/gallery/[id]/page.tsx.
+// face-recognition galleries, see app/gallery/[id]/page.tsx.
+
+import { personLabel } from "@/lib/i18n";
 
 export interface ClusterInfo {
   personId: string;
@@ -10,21 +12,17 @@ export interface ClusterInfo {
   displayName?: string | null;
 }
 
-export function personLabel(personId: string, displayName?: string | null): string {
-  if (displayName) return displayName;
-  const n = parseInt(personId.split("_")[1] || "0", 10);
-  return Number.isFinite(n) && n > 0 ? `Person ${n}` : personId;
-}
-
 export default function FaceIndicator({
   personIds,
   clusterMap,
   onSelect,
+  lang,
   max = 3,
 }: {
   personIds: string[];
   clusterMap: Map<string, ClusterInfo>;
   onSelect: (personId: string) => void;
+  lang?: string | null;
   max?: number;
 }) {
   if (!personIds || personIds.length === 0) return null;
@@ -54,7 +52,7 @@ export default function FaceIndicator({
               letterSpacing: "0.3px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
             }}
-            title={personLabel(pid, c.displayName)}
+            title={personLabel(pid, c.displayName, lang)}
           >
             <span
               style={{
@@ -65,7 +63,7 @@ export default function FaceIndicator({
                 flexShrink: 0,
               }}
             />
-            {personLabel(pid, c.displayName)}
+            {personLabel(pid, c.displayName, lang)}
           </button>
         );
       })}
