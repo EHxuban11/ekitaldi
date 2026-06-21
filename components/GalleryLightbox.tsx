@@ -56,6 +56,12 @@ export default function GalleryLightbox({
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < photos.length - 1;
 
+  // A shareable deep link to THIS photo (works on any ekitaldi gallery).
+  const photoShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}${window.location.pathname}?p=${photo.id}`;
+  };
+
   const computeFinalRect = useCallback(() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -342,7 +348,7 @@ export default function GalleryLightbox({
 
         {showShare && (
           <ShareModal
-            url={typeof window !== "undefined" ? window.location.href : ""}
+            url={photoShareUrl()}
             title={photo.filename}
             onClose={() => setShowShare(false)}
           />
