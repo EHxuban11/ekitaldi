@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import "./globals.css";
-import FeedbackButton from "@/components/FeedbackButton";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -39,14 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={raleway.variable}>
-      <body className="bg-white text-gray-900 min-h-screen">
-        {children}
-        <FeedbackButton
-          endpoint="https://issue-creator.xuban-ceccon.workers.dev"
-          repo="EHxuban11/ekitaldi"
-          app="ekitaldi"
-        />
-      </body>
+      <body className="bg-white text-gray-900 min-h-screen">{children}</body>
     </html>
   );
 }
