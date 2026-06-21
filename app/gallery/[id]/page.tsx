@@ -158,7 +158,7 @@ export default function GalleryPage() {
   const [showShare, setShowShare] = useState(false);
   const [r2Blocked, setR2Blocked] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = useState<string>("todas");
+  const [selectedSection, setSelectedSection] = useState<string>(WEDDING_SECTIONS[0].key);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchGallery = useCallback(async (cursor?: number) => {

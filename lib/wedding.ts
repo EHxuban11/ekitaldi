@@ -8,9 +8,9 @@ export interface WeddingSection {
 }
 
 export const WEDDING_SECTIONS: WeddingSection[] = [
+  { key: "novios_solos", sections: ["novios_solos"] },
   { key: "todas", sections: ["todas"] },
   { key: "familia", sections: ["familia_marco", "familia_importante"] },
-  { key: "novios_solos", sections: ["novios_solos"] },
   { key: "novios_con_amigos", sections: ["novios_con_amigos"] },
   { key: "prints", sections: ["prints"] },
   { key: "videos", sections: ["videos"] },
