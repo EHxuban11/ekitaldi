@@ -223,6 +223,30 @@ export default function GalleryLightbox({
     a.click();
   };
 
+  // Share the actual photo/video FILE via the native share sheet, so WhatsApp,
+  // Instagram, etc. receive the image itself (not just a link). We fetch it from
+  // our own /download endpoint (same-origin, no CORS issues). Falls back to the
+  // link share modal where file sharing isn't supported (most desktops).
+  const sharePhoto = async () => {
+    try {
+      const res = await fetch(`/api/gallery/${galleryId}/download?photoId=${photo.id}`);
+      const blob = await res.blob();
+      const type = blob.type || (photo.mediaType === "video" ? "video/mp4" : "image/jpeg");
+      const file = new File([blob], photo.filename, { type });
+      const nav = navigator as Navigator & {
+        canShare?: (data?: { files?: File[] }) => boolean;
+        share: (data?: { files?: File[]; title?: string; url?: string }) => Promise<void>;
+      };
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: photo.filename });
+        return;
+      }
+    } catch {
+      // fall through to link sharing
+    }
+    setShowShare(true);
+  };
+
   const getCloneStyle = (): React.CSSProperties => {
     if (closingTo) {
       return {
@@ -299,7 +323,7 @@ export default function GalleryLightbox({
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </button>
-            <button onClick={() => setShowShare(true)} className="text-gray-400 hover:text-gray-700 transition-colors" title="Share">
+            <button onClick={sharePhoto} className="text-gray-400 hover:text-gray-700 transition-colors" title="Share">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                 <polyline points="16 6 12 2 8 6" />
