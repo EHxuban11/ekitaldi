@@ -400,19 +400,9 @@ export default function GalleryPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
           <div className="absolute inset-0 z-10 flex flex-col justify-between text-white px-5 py-12 sm:px-6 sm:py-20">
-            {weddingMode && gallery.logoUrl ? (
-              <div className="flex justify-center pt-2">
-                <img
-                  src={gallery.logoUrl}
-                  alt={gallery.name}
-                  style={{ maxHeight: 96, maxWidth: "72%", objectFit: "contain", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }}
-                />
-              </div>
-            ) : (
-              <p className="text-[10px] tracking-[2px] uppercase text-white">
-                {t.photoGallery}
-              </p>
-            )}
+            <p className="text-[10px] tracking-[2px] uppercase text-white">
+              {t.photoGallery}
+            </p>
             <div className="pb-6 sm:pb-12">
               <h1
                 className="font-bold uppercase text-white text-2xl sm:text-4xl md:text-[52px]"
@@ -527,6 +517,26 @@ export default function GalleryPage() {
           )}
         </div>
       </section>
+
+      {/* txokofoto credit / promo */}
+      <footer className="py-12 px-6 text-center" style={{ borderTop: "1px solid rgba(30,30,30,0.06)" }}>
+        <a
+          href="https://www.txokofoto.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex flex-col items-center gap-1.5 transition-opacity hover:opacity-70"
+        >
+          <span
+            className="uppercase"
+            style={{ fontFamily: "var(--font-raleway), sans-serif", fontSize: 19, letterSpacing: "4px", fontWeight: 700, color: "rgb(30,30,30)" }}
+          >
+            txokofoto
+          </span>
+          <span className="uppercase" style={{ fontSize: 9, letterSpacing: "2px", color: "rgba(30,30,30,0.4)" }}>
+            Fotografía de bodas y eventos · txokofoto.com
+          </span>
+        </a>
+      </footer>
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
