@@ -76,6 +76,19 @@ export default function ShareModal({ url, title, onClose }: ShareModalProps) {
     }
   };
 
+  // Instagram has no web post/story intent, so the best we can do is copy the
+  // link and open Instagram, ready for the user to paste into a story or bio.
+  const handleInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard blocked
+    }
+    window.open("https://www.instagram.com", "_blank", "noopener,noreferrer");
+  };
+
   return (
     <>
       <div
@@ -118,6 +131,20 @@ export default function ShareModal({ url, title, onClose }: ShareModalProps) {
                 <span className="text-[10px] text-gray-500">{s.name}</span>
               </a>
             ))}
+            <button
+              onClick={handleInstagram}
+              className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors"
+              title="Copy link and open Instagram (paste into your story or bio)"
+            >
+              <div className="w-12 h-12 rounded-full bg-gray-500 hover:bg-gray-700 text-white flex items-center justify-center transition-colors">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </div>
+              <span className="text-[10px] text-gray-500">Instagram</span>
+            </button>
             {hasNativeShare && (
               <button
                 onClick={handleNativeShare}
