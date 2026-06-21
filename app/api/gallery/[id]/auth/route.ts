@@ -11,8 +11,8 @@ export async function POST(
 ) {
   try {
     const { password } = (await request.json()) as { password: string };
-    const gallery = await db.gallery.findUnique({
-      where: { id: params.id },
+    const gallery = await db.gallery.findFirst({
+      where: { OR: [{ id: params.id }, { slug: params.id }] },
     });
 
     if (!gallery) {

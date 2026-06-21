@@ -26,6 +26,7 @@ function parse(argv) {
     if (a === "--password") opts.password = argv[++i];
     else if (a === "--clear-password") opts.clearPassword = true;
     else if (a === "--language") opts.language = argv[++i];
+    else if (a === "--slug") opts.slug = argv[++i];
     else if (a === "--name") opts.name = argv[++i];
     else if (a === "--date") opts.date = argv[++i];
     else pos.push(a);
@@ -43,6 +44,7 @@ async function main() {
   if (opts.password) data.passwordHash = hashPassword(opts.password);
   if (opts.clearPassword) data.passwordHash = null;
   if (opts.language) data.language = opts.language;
+  if (opts.slug) data.slug = opts.slug;
   if (opts.name) data.name = opts.name;
   if (opts.date) data.date = opts.date;
   if (Object.keys(data).length === 0) {

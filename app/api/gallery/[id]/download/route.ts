@@ -14,8 +14,8 @@ export async function GET(
       return NextResponse.json({ error: "photoId required" }, { status: 400 });
     }
 
-    const gallery = await db.gallery.findUnique({
-      where: { id: params.id },
+    const gallery = await db.gallery.findFirst({
+      where: { OR: [{ id: params.id }, { slug: params.id }] },
       include: { photos: { where: { id: photoId } } },
     });
 

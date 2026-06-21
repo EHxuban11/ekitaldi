@@ -14,8 +14,8 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const gallery = await db.gallery.findUnique({
-    where: { id: params.id },
+  const gallery = await db.gallery.findFirst({
+    where: { OR: [{ id: params.id }, { slug: params.id }] },
     select: { name: true, date: true, language: true },
   });
   if (!gallery) return { title: "Gallery" };

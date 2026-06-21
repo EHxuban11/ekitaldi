@@ -27,6 +27,7 @@ export async function GET() {
 
       return {
         id: g.id,
+        slug: g.slug,
         name: g.name,
         date: g.date,
         photoCount: g._count.photos,

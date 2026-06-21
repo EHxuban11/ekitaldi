@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface PublicGallery {
   id: string;
+  slug: string | null;
   name: string;
   date: string | null;
   photoCount: number;
@@ -39,7 +40,7 @@ export default function Home() {
           {galleries.map((g) => (
             <a
               key={g.id}
-              href={`/gallery/${g.id}`}
+              href={`/gallery/${g.slug || g.id}`}
               className="group relative aspect-[16/10] overflow-hidden bg-gray-100 rounded-sm"
             >
               {g.coverUrl && (

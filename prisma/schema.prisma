@@ -30,6 +30,7 @@ model Gallery {
   // complexity isolated so normal galleries render exactly as before.
   type    String  @default("normal")
   logoKey String? @map("logo_key") // r2 key of the wedding logo shown in the hero
+  slug    String? @unique // pretty URL, e.g. "ainhoa-eta-adrian"; falls back to id
 
   photos         GalleryPhoto[]
   personClusters PersonCluster[]

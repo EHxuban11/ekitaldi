@@ -10,8 +10,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const gallery = await db.gallery.findUnique({
-      where: { id: params.id },
+    const gallery = await db.gallery.findFirst({
+      where: { OR: [{ id: params.id }, { slug: params.id }] },
       include: {
         photos: { orderBy: { order: "asc" } },
         personClusters: { orderBy: { size: "desc" } },
