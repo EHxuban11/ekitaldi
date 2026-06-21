@@ -31,9 +31,13 @@ export async function GET() {
         date: g.date,
         photoCount: g._count.photos,
         hasPassword: !!g.passwordHash,
-        coverUrl: coverPhoto?.thumbR2Key
-          ? getPublicUrl(coverPhoto.thumbR2Key)
-          : null,
+        // Censor covers of password-protected galleries on the public landing
+        // page, so a private gallery never leaks a preview image.
+        coverUrl: g.passwordHash
+          ? null
+          : coverPhoto?.thumbR2Key
+            ? getPublicUrl(coverPhoto.thumbR2Key)
+            : null,
       };
     });
 

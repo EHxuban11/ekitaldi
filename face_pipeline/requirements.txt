@@ -1,0 +1,10 @@
+# Face detection + clustering pipeline (Stage 1 of "find me in the photos").
+# Install:  python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
+# CPU-only by default. For CUDA, swap onnxruntime -> onnxruntime-gpu and pass --gpu.
+insightface>=0.7.3
+onnxruntime>=1.17
+opencv-python>=4.9
+scikit-learn>=1.4
+numpy>=1.26
+pillow>=10
+tqdm>=4.66

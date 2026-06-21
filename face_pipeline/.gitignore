@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+# detection outputs are generated per-gallery, not source
+faces.json
+out/
