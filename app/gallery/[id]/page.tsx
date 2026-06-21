@@ -6,7 +6,9 @@ import GalleryLightbox, { ThumbnailRect } from "@/components/GalleryLightbox";
 import ShareModal from "@/components/ShareModal";
 import PeopleBar, { Cluster } from "@/components/PeopleBar";
 import FaceIndicator, { ClusterInfo } from "@/components/FaceIndicator";
+import SectionBar from "@/components/SectionBar";
 import { getStrings, personLabel } from "@/lib/i18n";
+import { WEDDING_SECTIONS } from "@/lib/wedding";
 
 // Row-by-row masonry: assigns each photo to the shortest column
 function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPhoto[][] {
@@ -66,7 +68,7 @@ function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson, lang }:
                 data-photo-index={flatIndex}
                 className="cursor-pointer overflow-hidden relative group"
                 onClick={(e) => {
-                  const img = e.currentTarget.querySelector("img");
+                  const img = e.currentTarget.querySelector("img,video");
                   if (img) {
                     const rect = img.getBoundingClientRect();
                     onPhotoClick(flatIndex, { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
@@ -75,17 +77,35 @@ function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson, lang }:
                   }
                 }}
               >
-                <img
-                  src={photo.thumbUrl}
-                  alt={photo.filename}
-                  className="w-full block bg-gray-100 transition-transform duration-300 group-hover:scale-[1.03]"
-                  loading="lazy"
-                  style={
-                    photo.width && photo.height
-                      ? { aspectRatio: `${photo.width}/${photo.height}` }
-                      : undefined
-                  }
-                />
+                {photo.mediaType === "video" ? (
+                  <>
+                    <video
+                      src={photo.url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="w-full block bg-black object-cover"
+                      style={{ aspectRatio: photo.width && photo.height ? `${photo.width}/${photo.height}` : "3/4" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={photo.thumbUrl}
+                    alt={photo.filename}
+                    className="w-full block bg-gray-100 transition-transform duration-300 group-hover:scale-[1.03]"
+                    loading="lazy"
+                    style={
+                      photo.width && photo.height
+                        ? { aspectRatio: `${photo.width}/${photo.height}` }
+                        : undefined
+                    }
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" />
                 {clusterMap && onSelectPerson && photo.personIds && photo.personIds.length > 0 && (
                   <FaceIndicator
@@ -112,6 +132,8 @@ interface GalleryPhoto {
   url: string;
   thumbUrl: string;
   personIds?: string[];
+  section?: string;
+  mediaType?: string;
 }
 
 interface GalleryData {
@@ -126,6 +148,8 @@ interface GalleryData {
   faceRecognitionEnabled?: boolean;
   clusters?: Cluster[];
   language?: string;
+  type?: string;
+  logoUrl?: string;
 }
 
 export default function GalleryPage() {
@@ -145,6 +169,7 @@ export default function GalleryPage() {
   const [showShare, setShowShare] = useState(false);
   const [r2Blocked, setR2Blocked] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string>("todas");
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchGallery = useCallback(async (cursor?: number) => {
@@ -213,10 +238,23 @@ export default function GalleryPage() {
     }
     return m;
   }, [clusters]);
+  const weddingMode = gallery?.type === "wedding";
+  const availableSections = useMemo(
+    () => new Set(photos.map((p) => p.section).filter(Boolean) as string[]),
+    [photos]
+  );
+  const currentSectionKeys = useMemo(() => {
+    const s = WEDDING_SECTIONS.find((x) => x.key === selectedSection);
+    return s ? s.sections : [];
+  }, [selectedSection]);
+  // People bar only makes sense on "Todas" (where faces were detected).
+  const showPeople = facesEnabled && (!weddingMode || selectedSection === "todas");
   const displayedPhotos = useMemo(() => {
-    if (!facesEnabled || !selectedPerson) return photos;
-    return photos.filter((p) => p.personIds?.includes(selectedPerson));
-  }, [facesEnabled, selectedPerson, photos]);
+    let list = photos;
+    if (weddingMode) list = list.filter((p) => p.section && currentSectionKeys.includes(p.section));
+    if (showPeople && selectedPerson) list = list.filter((p) => p.personIds?.includes(selectedPerson));
+    return list;
+  }, [weddingMode, currentSectionKeys, showPeople, selectedPerson, photos]);
 
   const t = getStrings(gallery?.language);
   const lang = gallery?.language ?? null;
@@ -362,9 +400,19 @@ export default function GalleryPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
           <div className="absolute inset-0 z-10 flex flex-col justify-between text-white px-5 py-12 sm:px-6 sm:py-20">
-            <p className="text-[10px] tracking-[2px] uppercase text-white">
-              {t.photoGallery}
-            </p>
+            {weddingMode && gallery.logoUrl ? (
+              <div className="flex justify-center pt-2">
+                <img
+                  src={gallery.logoUrl}
+                  alt={gallery.name}
+                  style={{ maxHeight: 96, maxWidth: "72%", objectFit: "contain", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.55))" }}
+                />
+              </div>
+            ) : (
+              <p className="text-[10px] tracking-[2px] uppercase text-white">
+                {t.photoGallery}
+              </p>
+            )}
             <div className="pb-6 sm:pb-12">
               <h1
                 className="font-bold uppercase text-white text-2xl sm:text-4xl md:text-[52px]"
@@ -423,7 +471,16 @@ export default function GalleryPage() {
           </div>
         </header>
 
-        {facesEnabled && (
+        {weddingMode && (
+          <SectionBar
+            available={availableSections}
+            selected={selectedSection}
+            onSelect={(key) => { setSelectedSection(key); setSelectedPerson(null); }}
+            lang={lang}
+          />
+        )}
+
+        {showPeople && (
           <PeopleBar
             clusters={clusters}
             selected={selectedPerson}
@@ -433,7 +490,7 @@ export default function GalleryPage() {
         )}
 
         <div className="px-2 pb-6 sm:px-5 sm:pb-8">
-          {facesEnabled && selectedPerson && (
+          {showPeople && selectedPerson && (
             <div className="flex items-center justify-between px-2 sm:px-3 pt-1 pb-3">
               <span className="text-xs" style={{ color: "rgba(30,30,30,0.55)" }}>
                 {personLabel(selectedPerson, clusterMap.get(selectedPerson)?.displayName, lang)} ·{" "}
@@ -452,8 +509,8 @@ export default function GalleryPage() {
           <MasonryGrid
             photos={displayedPhotos}
             onPhotoClick={(index, rect) => { setThumbRect(rect); setLightboxIndex(index); }}
-            clusterMap={facesEnabled ? clusterMap : undefined}
-            onSelectPerson={facesEnabled ? setSelectedPerson : undefined}
+            clusterMap={showPeople ? clusterMap : undefined}
+            onSelectPerson={showPeople ? setSelectedPerson : undefined}
             lang={lang}
           />
 

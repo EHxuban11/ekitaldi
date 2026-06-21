@@ -10,6 +10,7 @@ interface GalleryPhoto {
   height: number | null;
   url: string;
   thumbUrl: string;
+  mediaType?: string;
 }
 
 export interface ThumbnailRect {
@@ -261,12 +262,16 @@ export default function GalleryLightbox({
 
       {showClone && (
         <div style={getCloneStyle()}>
-          <img
-            src={photo.thumbUrl}
-            alt={photo.filename}
-            className="w-full h-full object-contain"
-            draggable={false}
-          />
+          {photo.mediaType === "video" ? (
+            <div className="w-full h-full bg-black" />
+          ) : (
+            <img
+              src={photo.thumbUrl}
+              alt={photo.filename}
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+          )}
         </div>
       )}
 
@@ -314,20 +319,30 @@ export default function GalleryLightbox({
           onTouchEnd={handleTouchEnd}
           style={{ cursor: zoom > 1 ? (dragging ? "grabbing" : "grab") : "default" }}
         >
-          <img
-            src={photo.url}
-            alt={photo.filename}
-            className="max-h-full max-w-full object-contain select-none"
-            style={{
-              transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
-              transition: dragging ? "none" : "transform 0.2s ease-out",
-            }}
-            draggable={false}
-            onDoubleClick={() => {
-              if (zoom > 1) { setZoom(1); setPan({ x: 0, y: 0 }); }
-              else setZoom(3);
-            }}
-          />
+          {photo.mediaType === "video" ? (
+            <video
+              src={photo.url}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-full max-w-full object-contain"
+            />
+          ) : (
+            <img
+              src={photo.url}
+              alt={photo.filename}
+              className="max-h-full max-w-full object-contain select-none"
+              style={{
+                transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                transition: dragging ? "none" : "transform 0.2s ease-out",
+              }}
+              draggable={false}
+              onDoubleClick={() => {
+                if (zoom > 1) { setZoom(1); setPan({ x: 0, y: 0 }); }
+                else setZoom(3);
+              }}
+            />
+          )}
           {hasPrev && (
             <button onClick={() => onNavigate(currentIndex - 1)} className="absolute left-0 top-0 bottom-0 w-10 sm:w-24 flex items-center justify-start pl-2 sm:pl-3 text-gray-300 hover:text-gray-500 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>

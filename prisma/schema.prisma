@@ -25,6 +25,12 @@ model Gallery {
   // UI language for the gallery page: "en" (default), "eu" (Basque), "es".
   language String @default("en")
 
+  // Gallery experience: "normal" (default, a flat gallery, unchanged) or
+  // "wedding" (rich layout: sections, logo, video, faces). Keeps wedding
+  // complexity isolated so normal galleries render exactly as before.
+  type    String  @default("normal")
+  logoKey String? @map("logo_key") // r2 key of the wedding logo shown in the hero
+
   photos         GalleryPhoto[]
   personClusters PersonCluster[]
   faces          Face[]
@@ -46,6 +52,13 @@ model GalleryPhoto {
   // ["person_001","person_004"]). Empty for non-face galleries. This array is
   // what powers "find me in the photos" filtering in the UI.
   personIds String[] @default([]) @map("person_ids")
+
+  // Wedding-mode grouping. null for normal galleries. Section keys: todas,
+  // familia_marco, familia_importante, novios_solos, novios_con_amigos, prints,
+  // videos.
+  section     String?
+  mediaType   String  @default("image") @map("media_type") // "image" | "video"
+  posterR2Key String? @map("poster_r2_key") // optional video poster (unused: browser shows first frame)
 
   gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
   faces   Face[]

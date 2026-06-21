@@ -34,6 +34,7 @@ export async function GET(
         hasPassword,
         authenticated: false,
         language: gallery.language,
+        type: gallery.type,
       });
     }
 
@@ -50,8 +51,10 @@ export async function GET(
     // the full set in one response so person-filtering spans the whole gallery;
     // non-face galleries keep the exact same paginated behavior as before.
     const facesOn = gallery.faceRecognitionEnabled;
+    const wedding = gallery.type === "wedding";
+    const rich = facesOn || wedding; // return the whole set in one response
     const cursor = parseInt(request.nextUrl.searchParams.get("cursor") || "0", 10);
-    const defaultLimit = facesOn ? sorted.length : 30;
+    const defaultLimit = rich ? sorted.length : 30;
     const limit = parseInt(
       request.nextUrl.searchParams.get("limit") || String(defaultLimit),
       10
@@ -67,6 +70,7 @@ export async function GET(
       url: getPublicUrl(p.r2Key),
       thumbUrl: getPublicUrl(p.thumbR2Key),
       ...(facesOn ? { personIds: p.personIds } : {}),
+      ...(wedding ? { section: p.section, mediaType: p.mediaType } : {}),
     }));
 
     return NextResponse.json({
@@ -77,6 +81,8 @@ export async function GET(
       authenticated: true,
       coverPhotoId: gallery.coverPhotoId,
       language: gallery.language,
+      type: gallery.type,
+      ...(wedding && gallery.logoKey ? { logoUrl: getPublicUrl(gallery.logoKey) } : {}),
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
       photos: photosWithUrls,
