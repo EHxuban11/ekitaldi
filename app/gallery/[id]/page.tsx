@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import GalleryLightbox, { ThumbnailRect } from "@/components/GalleryLightbox";
 import ShareModal from "@/components/ShareModal";
 import PeopleBar, { Cluster } from "@/components/PeopleBar";
-import FaceIndicator, { ClusterInfo } from "@/components/FaceIndicator";
+import { ClusterInfo } from "@/components/FaceIndicator";
 import SectionBar from "@/components/SectionBar";
 import { getStrings, personLabel } from "@/lib/i18n";
 import { WEDDING_SECTIONS } from "@/lib/wedding";
@@ -25,12 +25,9 @@ function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPho
   }, [photos, colCount]);
 }
 
-function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson, lang }: {
+function MasonryGrid({ photos, onPhotoClick }: {
   photos: GalleryPhoto[];
   onPhotoClick: (index: number, rect: ThumbnailRect) => void;
-  clusterMap?: Map<string, ClusterInfo>;
-  onSelectPerson?: (personId: string) => void;
-  lang?: string | null;
 }) {
   const [colCount, setColCount] = useState(4);
 
@@ -107,14 +104,6 @@ function MasonryGrid({ photos, onPhotoClick, clusterMap, onSelectPerson, lang }:
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" />
-                {clusterMap && onSelectPerson && photo.personIds && photo.personIds.length > 0 && (
-                  <FaceIndicator
-                    personIds={photo.personIds}
-                    clusterMap={clusterMap}
-                    onSelect={onSelectPerson}
-                    lang={lang}
-                  />
-                )}
               </div>
             );
           })}
@@ -499,9 +488,6 @@ export default function GalleryPage() {
           <MasonryGrid
             photos={displayedPhotos}
             onPhotoClick={(index, rect) => { setThumbRect(rect); setLightboxIndex(index); }}
-            clusterMap={showPeople ? clusterMap : undefined}
-            onSelectPerson={showPeople ? setSelectedPerson : undefined}
-            lang={lang}
           />
 
           {!selectedPerson && nextCursor !== null && (
