@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { deleteGalleryFromR2, getPublicUrl } from "@/lib/r2";
-import { hashPassword, verifyGalleryAccess } from "@/lib/gallery-auth";
+import { hashPassword } from "@/lib/gallery-auth";
+import { canAccessGallery } from "@/lib/gallery-access";
+import { localEventGallery } from "@/lib/local-event-preview";
+import { parseSectionTabs } from "@/lib/wedding";
 
 // Get gallery details (public — used by gallery page)
 export async function GET(
@@ -10,6 +13,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (params.id.startsWith("local-")) {
+      const preview = await localEventGallery(params.id.slice("local-".length));
+      if (preview) return NextResponse.json(preview);
+    }
     const gallery = await db.gallery.findFirst({
       where: { OR: [{ id: params.id }, { slug: params.id }] },
       include: {
@@ -24,8 +31,7 @@ export async function GET(
 
     const hasPassword = !!gallery.passwordHash;
     const cookie = request.cookies.get(`gallery_${params.id}`)?.value;
-    const hasAccess =
-      !gallery.passwordHash || (cookie ? verifyGalleryAccess(params.id, cookie) : false);
+    const hasAccess = await canAccessGallery(params.id, gallery.passwordHash, cookie);
 
     if (!hasAccess) {
       return NextResponse.json({
@@ -52,6 +58,7 @@ export async function GET(
     // non-face galleries keep the exact same paginated behavior as before.
     const facesOn = gallery.faceRecognitionEnabled;
     const wedding = gallery.type === "wedding";
+    const sectionTabs = wedding ? parseSectionTabs(gallery.brandingJson) : undefined;
     const rich = facesOn || wedding; // return the whole set in one response
     const cursor = parseInt(request.nextUrl.searchParams.get("cursor") || "0", 10);
     const defaultLimit = rich ? sorted.length : 30;
@@ -82,6 +89,7 @@ export async function GET(
       coverPhotoId: gallery.coverPhotoId,
       language: gallery.language,
       type: gallery.type,
+      ...(sectionTabs ? { sectionTabs } : {}),
       ...(wedding && gallery.logoKey ? { logoUrl: getPublicUrl(gallery.logoKey) } : {}),
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
@@ -99,7 +107,7 @@ export async function GET(
             })),
           }
         : {}),
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

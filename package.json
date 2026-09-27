@@ -10,7 +10,10 @@
     "start": "next start",
     "db:push": "prisma db push",
     "postinstall": "prisma generate",
-    "lint": "next lint"
+    "lint": "next lint",
+    "event:check": "node scripts/check-event.mjs",
+    "event:publish": "node scripts/publish-event.mjs",
+    "test": "node --test scripts/gallery-access.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1017.0",

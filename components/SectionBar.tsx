@@ -3,20 +3,22 @@
 // Wedding-mode tabs (Todas / Familia / Los novios / Con amigos / Prints / Vídeos).
 // Only shown for type="wedding" galleries; only tabs with photos appear.
 
-import { WEDDING_SECTIONS, sectionLabel } from "@/lib/wedding";
+import { WEDDING_SECTIONS, sectionLabel, WeddingSection } from "@/lib/wedding";
 
 export default function SectionBar({
   available,
   selected,
   onSelect,
   lang,
+  sections = WEDDING_SECTIONS,
 }: {
   available: Set<string>; // photo.section values present in the gallery
   selected: string; // selected UI section key
   onSelect: (key: string) => void;
   lang?: string | null;
+  sections?: WeddingSection[];
 }) {
-  const visible = WEDDING_SECTIONS.filter((s) => s.sections.some((x) => available.has(x)));
+  const visible = sections.filter((s) => s.sections.some((x) => available.has(x)));
   if (visible.length <= 1) return null;
 
   return (
@@ -38,7 +40,7 @@ export default function SectionBar({
                 borderBottom: active ? "2px solid rgb(30,30,30)" : "2px solid transparent",
               }}
             >
-              {sectionLabel(s.key, lang)}
+              {sectionLabel(s, lang)}
             </button>
           );
         })}

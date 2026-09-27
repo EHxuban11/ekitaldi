@@ -5,6 +5,26 @@
 export interface WeddingSection {
   key: string;
   sections: string[]; // photo.section values this tab includes
+  label?: string;
+  labels?: Record<string, string>;
+}
+
+export function parseSectionTabs(brandingJson: string | null): WeddingSection[] | undefined {
+  if (!brandingJson) return undefined;
+  try {
+    const tabs: unknown = JSON.parse(brandingJson).tabs;
+    if (!Array.isArray(tabs) || !tabs.length) return undefined;
+    if (!tabs.every((tab) => tab && typeof tab.key === "string" &&
+      Array.isArray(tab.sections) && tab.sections.length > 0 &&
+      tab.sections.every((section: unknown) => typeof section === "string") &&
+      (tab.label === undefined || typeof tab.label === "string") &&
+      (tab.labels === undefined || (tab.labels && typeof tab.labels === "object" &&
+        Object.values(tab.labels).every((label) => typeof label === "string"))))) return undefined;
+    if (new Set(tabs.map((tab) => tab.key)).size !== tabs.length) return undefined;
+    return tabs;
+  } catch {
+    return undefined;
+  }
 }
 
 export const WEDDING_SECTIONS: WeddingSection[] = [
@@ -25,7 +45,12 @@ const LABELS: Record<string, Record<string, string>> = {
   videos: { en: "Videos", es: "Vídeos", eu: "Bideoak" },
 };
 
-export function sectionLabel(key: string, lang?: string | null): string {
+export function sectionLabel(section: WeddingSection | string, lang?: string | null): string {
+  if (typeof section !== "string") {
+    const custom = section.labels?.[(lang as string) || "en"] || section.label;
+    if (custom) return custom;
+  }
+  const key = typeof section === "string" ? section : section.key;
   const l = LABELS[key];
   if (!l) return key;
   return l[(lang as string) || "en"] || l.en;

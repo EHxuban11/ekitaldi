@@ -8,7 +8,7 @@ import PeopleBar, { Cluster } from "@/components/PeopleBar";
 import { ClusterInfo } from "@/components/FaceIndicator";
 import SectionBar from "@/components/SectionBar";
 import { getStrings, personLabel } from "@/lib/i18n";
-import { WEDDING_SECTIONS } from "@/lib/wedding";
+import { WEDDING_SECTIONS, WeddingSection } from "@/lib/wedding";
 
 // Row-by-row masonry: assigns each photo to the shortest column
 function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPhoto[][] {
@@ -139,6 +139,7 @@ interface GalleryData {
   language?: string;
   type?: string;
   logoUrl?: string;
+  sectionTabs?: WeddingSection[];
 }
 
 export default function GalleryPage() {
@@ -228,14 +229,23 @@ export default function GalleryPage() {
     return m;
   }, [clusters]);
   const weddingMode = gallery?.type === "wedding";
+  const weddingSections = gallery?.sectionTabs?.length ? gallery.sectionTabs : WEDDING_SECTIONS;
   const availableSections = useMemo(
     () => new Set(photos.map((p) => p.section).filter(Boolean) as string[]),
     [photos]
   );
   const currentSectionKeys = useMemo(() => {
-    const s = WEDDING_SECTIONS.find((x) => x.key === selectedSection);
+    const s = weddingSections.find((x) => x.key === selectedSection);
     return s ? s.sections : [];
-  }, [selectedSection]);
+  }, [selectedSection, weddingSections]);
+  useEffect(() => {
+    const firstAvailable = weddingSections.find((section) =>
+      section.sections.some((key) => availableSections.has(key))
+    );
+    if (firstAvailable && !weddingSections.some((section) => section.key === selectedSection && section.sections.some((key) => availableSections.has(key)))) {
+      setSelectedSection(firstAvailable.key);
+    }
+  }, [availableSections, selectedSection, weddingSections]);
   // People bar only makes sense on "Todas" (where faces were detected).
   const showPeople = facesEnabled && (!weddingMode || selectedSection === "todas");
   const displayedPhotos = useMemo(() => {
@@ -456,6 +466,7 @@ export default function GalleryPage() {
             selected={selectedSection}
             onSelect={(key) => { setSelectedSection(key); setSelectedPerson(null); }}
             lang={lang}
+            sections={weddingSections}
           />
         )}
 

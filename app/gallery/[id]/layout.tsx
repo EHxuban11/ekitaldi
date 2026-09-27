@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { getStrings } from "@/lib/i18n";
+import { loadLocalEvent } from "@/lib/local-event-preview";
 
 // Per-gallery social preview (OpenGraph/Twitter). The page itself is a client
 // component and cannot export metadata, so this server layout supplies it, which
@@ -14,6 +15,10 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
+  if (params.id.startsWith("local-")) {
+    const event = loadLocalEvent(params.id.slice("local-".length));
+    if (event) return { title: event.name, description: event.date ? `${event.name} · ${event.date}` : "Galería de fotos" };
+  }
   const gallery = await db.gallery.findFirst({
     where: { OR: [{ id: params.id }, { slug: params.id }] },
     select: { name: true, date: true, language: true },
