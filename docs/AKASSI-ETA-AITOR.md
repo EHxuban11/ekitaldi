@@ -1,12 +1,12 @@
 # Akassi eta Aitor
 
-Live gallery: https://www.ekitaldi.org/gallery/akisi-eta-aitor
+Live gallery: https://www.ekitaldi.org/gallery/akassi-eta-aitor
 
 The delivery contains 413 individual photos, 133 photo strips and 130 videos.
 The event manifest maps these to All photos, Tiras and Bideoak. Existing galleries
 continue using their original tabs. No database schema change is required.
 
-Source media and supplied face data belong in the ignored `events/akisi-eta-aitor/source/`
+Source media and supplied face data belong in the ignored `events/akassi-eta-aitor/source/`
 and `exports/` directories. They are excluded from Git and Vercel deployments.
 The gallery password is kept in the ignored `.env.local` as `GALLERY_PASSWORD`.
 
@@ -16,8 +16,8 @@ The supplied OpenCV metadata uses normalized x/y/width/height boxes; Ekitaldi's
 avatar script expects pixel x1/y1/x2/y2 boxes. Prepare the compatible copy with:
 
 ```sh
-node scripts/prepare-event-faces.mjs akisi-eta-aitor
-npm run event:check -- akisi-eta-aitor
+node scripts/prepare-event-faces.mjs akassi-eta-aitor
+npm run event:check -- akassi-eta-aitor
 ```
 
 This keeps the reviewed assignments and labels for the 413 individual photos,
@@ -44,8 +44,8 @@ ordering and cover appearance. Person search is not enabled.
 For an existing event, preview and apply its presentation with:
 
 ```sh
-node --env-file=.env.local scripts/sync-event-presentation.mjs akisi-eta-aitor
-node --env-file=.env.local scripts/sync-event-presentation.mjs akisi-eta-aitor --apply
+node --env-file=.env.local scripts/sync-event-presentation.mjs akassi-eta-aitor
+node --env-file=.env.local scripts/sync-event-presentation.mjs akassi-eta-aitor --apply
 ```
 
 This also honors `people.avatarSelection: "reviewed"`, restoring each supplied
@@ -77,4 +77,5 @@ project `photo_selector` under `xubanceccons-projects`; Git pushes do not deploy
 
 The confirmed spelling is **Akassi**. The event manifest overrides the supplied
 `person_001` label through `people.labels`, preserving the original source JSON.
-The existing URL and delivery-directory identifier are retained for compatibility.
+The canonical URL and active event directory use `akassi-eta-aitor`. Legacy
+misspelled links redirect permanently to the canonical URL.

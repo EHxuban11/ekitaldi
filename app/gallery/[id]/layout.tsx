@@ -21,17 +21,20 @@ export async function generateMetadata({
   }
   const gallery = await db.gallery.findFirst({
     where: { OR: [{ id: params.id }, { slug: params.id }] },
-    select: { name: true, date: true, language: true },
+    select: { id: true, slug: true, name: true, date: true, language: true },
   });
   if (!gallery) return { title: "Gallery" };
 
   const t = getStrings(gallery.language);
   const description = gallery.date ? `${gallery.name} · ${gallery.date}` : t.photoGallery;
+  const canonicalUrl = `https://www.ekitaldi.org/gallery/${gallery.slug || gallery.id}`;
 
   return {
     title: gallery.name,
     description,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
+      url: canonicalUrl,
       title: gallery.name,
       description,
       siteName: "Ekitaldi",
