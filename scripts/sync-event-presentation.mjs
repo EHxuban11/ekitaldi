@@ -75,7 +75,10 @@ try {
     }));
     await db.$transaction([
       db.gallery.update({ where: { id: gallery.id }, data: { brandingJson } }),
-      ...avatars.map((avatar) => db.personCluster.update({ where: { id: avatar.clusterId }, data: { avatarKey: avatar.key } })),
+      ...avatars.map((avatar) => db.personCluster.update({ where: { id: avatar.clusterId }, data: {
+        avatarKey: avatar.key,
+        ...(event.people?.labels?.[avatar.personId] ? { displayName: event.people.labels[avatar.personId] } : {}),
+      } })),
     ]);
     fs.writeFileSync(path.join(exportDir, "reviewed-avatar-manifest.json"), JSON.stringify(avatars.map(({ personId, faceId, key }) => ({ personId, faceId, key })), null, 2));
     console.log("Event presentation and reviewed avatars applied. Photos, person assignments, and passwords unchanged.");

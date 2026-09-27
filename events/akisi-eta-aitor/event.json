@@ -29,7 +29,7 @@
       "folder": "VIDEOS"
     }
   ],
-  "name": "Akisi eta Aitor",
+  "name": "Akassi eta Aitor",
   "logo": {
     "hero": "LOGOS/logo.png"
   },
@@ -64,7 +64,11 @@
   ],
   "people": {
     "consentConfirmed": true,
-    "avatarSelection": "reviewed"
+    "avatarSelection": "reviewed",
+    "labels": {
+      "person_001": "Akassi",
+      "person_002": "Aitor"
+    }
   },
   "presentation": {
     "openingPhotos": [

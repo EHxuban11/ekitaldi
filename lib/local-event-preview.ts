@@ -13,7 +13,7 @@ const dimensions = new Map<string, { mtimeMs: number; width: number | null; heig
 
 type EventSection = { folder: string; key: string; mediaType?: "image" | "video" };
 type EventTab = { key: string; sections: string[]; label?: string; labels?: Record<string, string> };
-type LocalEvent = { slug: string; name: string; date?: string; language?: string; sourcePath: string; logo?: { hero?: string }; cover?: { section?: string; filename?: string }; sections: EventSection[]; tabs?: EventTab[]; faceDataPath?: string; presentation?: GalleryPresentation; publish?: { faceSection?: string } };
+type LocalEvent = { slug: string; name: string; date?: string; language?: string; sourcePath: string; logo?: { hero?: string }; cover?: { section?: string; filename?: string }; sections: EventSection[]; tabs?: EventTab[]; faceDataPath?: string; presentation?: GalleryPresentation; publish?: { faceSection?: string }; people?: { labels?: Record<string, string> } };
 
 function safeSlug(slug: string) { return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug); }
 
@@ -97,7 +97,7 @@ export async function localEventGallery(slug: string) {
   const clusters = (faceData?.clusters || [])
     .filter((cluster) => cluster.person_id === "person_001" || cluster.person_id === "person_002" || cluster.size >= 3)
     .filter((cluster) => photoCounts.has(cluster.person_id))
-    .map((cluster, index) => ({ personId: cluster.person_id, size: photoCounts.get(cluster.person_id)!, color: ["#E5989B", "#90BEDE", "#B5E48C", "#BDB2FF", "#FFB4A2", "#9AD1D4"][index % 6], displayName: cluster.label || `Persona ${index + 1}`, ...(cluster.example_faces?.[0] ? { avatarUrl: `/api/local-event/${slug}?face=${encodeURIComponent(cluster.example_faces[0])}` } : {}) }))
+    .map((cluster, index) => ({ personId: cluster.person_id, size: photoCounts.get(cluster.person_id)!, color: ["#E5989B", "#90BEDE", "#B5E48C", "#BDB2FF", "#FFB4A2", "#9AD1D4"][index % 6], displayName: event.people?.labels?.[cluster.person_id] || cluster.label || `Persona ${index + 1}`, ...(cluster.example_faces?.[0] ? { avatarUrl: `/api/local-event/${slug}?face=${encodeURIComponent(cluster.example_faces[0])}` } : {}) }))
     .sort((a, b) => b.size - a.size);
   return { id: `local-${slug}`, name: event.name, date: event.date, language: event.language || "eu", type: "wedding", hasPassword: false, authenticated: true, totalPhotos: photos.length, nextCursor: null, photos: orderGalleryPhotos(photos, photos[0]?.id, presentation), ...(logoUrl ? { logoUrl } : {}), hero: presentation.hero, faceRecognitionEnabled: clusters.length > 0, clusters: orderGalleryPeople(clusters, presentation), ...(event.tabs?.length ? { sectionTabs: event.tabs } : {}) };
 }

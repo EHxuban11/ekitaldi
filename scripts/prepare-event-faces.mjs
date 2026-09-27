@@ -30,7 +30,7 @@ const faceById=new Map(faces.map(f=>[f.face_id,f]));
 const clusters=raw.clusters.filter(c=>presentIds.has(c.person_id)).map(c=>{
  const reviewed=(c.example_faces||[]).map(id=>faceById.get(id)).filter(Boolean);
  const matching=faces.filter(f=>f.person_id===c.person_id);
- return {...c,size:photos.filter(p=>p.person_ids.includes(c.person_id)).length,example_files:[...new Set([...reviewed,...matching].map(f=>f.filename))].slice(0,5)};
+ return {...c,label:event.people?.labels?.[c.person_id]||c.label,size:photos.filter(p=>p.person_ids.includes(c.person_id)).length,example_files:[...new Set([...reviewed,...matching].map(f=>f.filename))].slice(0,5)};
 });
 const derived={...raw,params:{...raw.params,bbox_format:'pixel-xyxy',derived_from:event.faceDataPath},photos,faces,clusters,stats:{images:photos.length,faces:faces.length,people:clusters.length,photos_with_people:photos.filter(p=>p.person_ids.length).length}};
 fs.writeFileSync(output,JSON.stringify(derived));

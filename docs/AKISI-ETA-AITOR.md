@@ -1,4 +1,4 @@
-# Akisi eta Aitor
+# Akassi eta Aitor
 
 Live gallery: https://www.ekitaldi.org/gallery/akisi-eta-aitor
 
@@ -36,7 +36,7 @@ existing person data; use its `--dry-run` option first.
 ## Event presentation
 
 The manifest's `presentation` settings pin the five opening photos in the
-friend's exact order, prioritize Akisi and Aitor in the people bar, display the
+friend's exact order, prioritize Akassi and Aitor in the people bar, display the
 wedding logo, and set the cover's horizontal position to 56%. These settings are
 stored in this gallery's `brandingJson`; other galleries keep their existing
 ordering and cover appearance. Person search is not enabled.
@@ -74,3 +74,7 @@ and browser history restoration so login/logout in another tab is reflected.
 Run `npm test` for access and tab compatibility tests, and `npm run build` for
 production type checking and compilation. Production is the existing Vercel
 project `photo_selector` under `xubanceccons-projects`; Git pushes do not deploy it.
+
+The confirmed spelling is **Akassi**. The event manifest overrides the supplied
+`person_001` label through `people.labels`, preserving the original source JSON.
+The existing URL and delivery-directory identifier are retained for compatibility.
