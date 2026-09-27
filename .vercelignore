@@ -1,0 +1,10 @@
+# Original client material stays only on the production workstation.
+events/**/source/**
+events/**/exports/**
+events/**/demo-fotomaton-local/**
+events/**/demo-fotomaton-*/**
+
+# Local processing assets and secrets are not part of the web deployment.
+face_pipeline/.venv/**
+.env*
+.claude/**

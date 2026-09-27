@@ -45,7 +45,9 @@ export function verifyGalleryAccess(
     .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig)))
+  const sigBuffer = Buffer.from(sig);
+  const expectedBuffer = Buffer.from(expectedSig);
+  if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer))
     return false;
   return payload.startsWith(`gallery:${galleryId}:`);
 }

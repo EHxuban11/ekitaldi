@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getPublicUrl } from "@/lib/r2";
-import { verifyGalleryAccess } from "@/lib/gallery-auth";
+import { canAccessGallery } from "@/lib/gallery-access";
 
 // Download a single photo by photoId query param
 export async function GET(
@@ -26,7 +26,7 @@ export async function GET(
     // Check access
     if (gallery.passwordHash) {
       const cookie = request.cookies.get(`gallery_${params.id}`)?.value;
-      if (!cookie || !verifyGalleryAccess(params.id, cookie)) {
+      if (!(await canAccessGallery(params.id, gallery.passwordHash, cookie))) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     }
@@ -41,6 +41,7 @@ export async function GET(
     }
 
     const headers = new Headers();
+    headers.set("Cache-Control", "private, no-store");
     headers.set("Content-Disposition", `attachment; filename="${photo.filename}"`);
     headers.set("Content-Type", r2Response.headers.get("Content-Type") || "image/jpeg");
     const contentLength = r2Response.headers.get("Content-Length");

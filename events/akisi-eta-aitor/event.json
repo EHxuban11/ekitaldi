@@ -1,0 +1,101 @@
+{
+  "sourcePath": "source/Akisi eta Aitor",
+  "faceDataPath": "exports/faces.json",
+  "slug": "akisi-eta-aitor",
+  "date": "2026-09-26",
+  "publish": {
+    "maxImageSide": 3000,
+    "faceSection": "todas",
+    "faceRecognition": true,
+    "passwordRequired": true,
+    "passwordEnv": "GALLERY_PASSWORD",
+    "faceDataPath": "exports/faces-ekitaldi.json"
+  },
+  "sections": [
+    {
+      "label": "Argazki guztiak",
+      "key": "todas",
+      "folder": "TODAS_PROCESADAS"
+    },
+    {
+      "label": "Tiras",
+      "key": "tiras",
+      "folder": "TIRAS_FINAL_LEVE"
+    },
+    {
+      "label": "Bideoak",
+      "key": "videos",
+      "mediaType": "video",
+      "folder": "VIDEOS"
+    }
+  ],
+  "name": "Akisi eta Aitor",
+  "logo": {
+    "hero": "LOGOS/logo.png"
+  },
+  "cover": {
+    "section": "todas",
+    "filename": "20260926_204704_808_IMG_4371_3600..JPG"
+  },
+  "language": "eu",
+  "galleryType": "wedding",
+  "tabs": [
+    {
+      "label": "Argazki guztiak",
+      "sections": [
+        "todas"
+      ],
+      "key": "todas"
+    },
+    {
+      "label": "Tiras",
+      "sections": [
+        "tiras"
+      ],
+      "key": "tiras"
+    },
+    {
+      "label": "Bideoak",
+      "sections": [
+        "videos"
+      ],
+      "key": "videos"
+    }
+  ],
+  "people": {
+    "consentConfirmed": true,
+    "avatarSelection": "reviewed"
+  },
+  "presentation": {
+    "openingPhotos": [
+      {
+        "section": "todas",
+        "filename": "20260926_204704_808_IMG_4371_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204641_739_IMG_4369_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204653_364_IMG_4370_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204751_572_IMG_4372_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204803_261_IMG_4373_3600..JPG"
+      }
+    ],
+    "peopleOrder": [
+      "person_001",
+      "person_002"
+    ],
+    "hero": {
+      "showLogo": true,
+      "positionX": 56
+    }
+  }
+}

@@ -8,7 +8,7 @@ import PeopleBar, { Cluster } from "@/components/PeopleBar";
 import { ClusterInfo } from "@/components/FaceIndicator";
 import SectionBar from "@/components/SectionBar";
 import { getStrings, personLabel } from "@/lib/i18n";
-import { WEDDING_SECTIONS } from "@/lib/wedding";
+import { WEDDING_SECTIONS, WeddingSection } from "@/lib/wedding";
 
 // Row-by-row masonry: assigns each photo to the shortest column
 function useMasonryColumns(photos: GalleryPhoto[], colCount: number): GalleryPhoto[][] {
@@ -139,6 +139,8 @@ interface GalleryData {
   language?: string;
   type?: string;
   logoUrl?: string;
+  sectionTabs?: WeddingSection[];
+  hero?: { showLogo?: boolean; positionX?: number };
 }
 
 export default function GalleryPage() {
@@ -228,14 +230,23 @@ export default function GalleryPage() {
     return m;
   }, [clusters]);
   const weddingMode = gallery?.type === "wedding";
+  const weddingSections = gallery?.sectionTabs?.length ? gallery.sectionTabs : WEDDING_SECTIONS;
   const availableSections = useMemo(
     () => new Set(photos.map((p) => p.section).filter(Boolean) as string[]),
     [photos]
   );
   const currentSectionKeys = useMemo(() => {
-    const s = WEDDING_SECTIONS.find((x) => x.key === selectedSection);
+    const s = weddingSections.find((x) => x.key === selectedSection);
     return s ? s.sections : [];
-  }, [selectedSection]);
+  }, [selectedSection, weddingSections]);
+  useEffect(() => {
+    const firstAvailable = weddingSections.find((section) =>
+      section.sections.some((key) => availableSections.has(key))
+    );
+    if (firstAvailable && !weddingSections.some((section) => section.key === selectedSection && section.sections.some((key) => availableSections.has(key)))) {
+      setSelectedSection(firstAvailable.key);
+    }
+  }, [availableSections, selectedSection, weddingSections]);
   // People bar only makes sense on "Todas" (where faces were detected).
   const showPeople = facesEnabled && (!weddingMode || selectedSection === "todas");
   const displayedPhotos = useMemo(() => {
@@ -378,12 +389,13 @@ export default function GalleryPage() {
             src={coverPhoto.thumbUrl}
             alt={gallery.name}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: `${gallery.hero?.positionX ?? 50}% center` }}
           />
           <img
             src={coverPhoto.url}
             alt=""
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
-            style={{ opacity: 0 }}
+            style={{ opacity: 0, objectPosition: `${gallery.hero?.positionX ?? 50}% center` }}
             onLoad={(e) => { (e.target as HTMLImageElement).style.opacity = "1"; }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -393,6 +405,13 @@ export default function GalleryPage() {
               {t.photoGallery}
             </p>
             <div className="pb-6 sm:pb-12">
+              {gallery.hero?.showLogo && gallery.logoUrl && (
+                <img
+                  src={gallery.logoUrl}
+                  alt={`${gallery.name} logo`}
+                  className="mb-5 max-h-40 max-w-full sm:max-h-48 sm:max-w-[540px] object-contain object-left"
+                />
+              )}
               <h1
                 className="font-bold uppercase text-white text-2xl sm:text-4xl md:text-[52px]"
                 style={{ fontFamily: "var(--font-raleway), sans-serif", letterSpacing: "2.6px", margin: 0 }}
@@ -456,6 +475,7 @@ export default function GalleryPage() {
             selected={selectedSection}
             onSelect={(key) => { setSelectedSection(key); setSelectedPerson(null); }}
             lang={lang}
+            sections={weddingSections}
           />
         )}
 

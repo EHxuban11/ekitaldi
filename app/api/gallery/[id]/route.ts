@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { deleteGalleryFromR2, getPublicUrl } from "@/lib/r2";
-import { hashPassword, verifyGalleryAccess } from "@/lib/gallery-auth";
+import { hashPassword } from "@/lib/gallery-auth";
+import { canAccessGallery } from "@/lib/gallery-access";
+import { localEventGallery } from "@/lib/local-event-preview";
+import { parseSectionTabs } from "@/lib/wedding";
+import { parsePresentation, orderGalleryPhotos, orderGalleryPeople } from "@/lib/gallery-presentation";
 
 // Get gallery details (public — used by gallery page)
 export async function GET(
@@ -10,6 +14,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (params.id.startsWith("local-")) {
+      const preview = await localEventGallery(params.id.slice("local-".length));
+      if (preview) return NextResponse.json(preview);
+    }
     const gallery = await db.gallery.findFirst({
       where: { OR: [{ id: params.id }, { slug: params.id }] },
       include: {
@@ -24,8 +32,7 @@ export async function GET(
 
     const hasPassword = !!gallery.passwordHash;
     const cookie = request.cookies.get(`gallery_${params.id}`)?.value;
-    const hasAccess =
-      !gallery.passwordHash || (cookie ? verifyGalleryAccess(params.id, cookie) : false);
+    const hasAccess = await canAccessGallery(params.id, gallery.passwordHash, cookie);
 
     if (!hasAccess) {
       return NextResponse.json({
@@ -38,20 +45,15 @@ export async function GET(
       });
     }
 
-    // Sort photos: cover photo first, then by order
-    const sorted = [...gallery.photos].sort((a, b) => {
-      if (gallery.coverPhotoId) {
-        if (a.id === gallery.coverPhotoId) return -1;
-        if (b.id === gallery.coverPhotoId) return 1;
-      }
-      return a.order - b.order;
-    });
+    const presentation = gallery.type === "wedding" ? parsePresentation(gallery.brandingJson) : {};
+    const sorted = orderGalleryPhotos(gallery.photos, gallery.coverPhotoId, presentation);
 
     // Pagination: ?cursor=<index>&limit=<n> (default 30). Face galleries return
     // the full set in one response so person-filtering spans the whole gallery;
     // non-face galleries keep the exact same paginated behavior as before.
     const facesOn = gallery.faceRecognitionEnabled;
     const wedding = gallery.type === "wedding";
+    const sectionTabs = wedding ? parseSectionTabs(gallery.brandingJson) : undefined;
     const rich = facesOn || wedding; // return the whole set in one response
     const cursor = parseInt(request.nextUrl.searchParams.get("cursor") || "0", 10);
     const defaultLimit = rich ? sorted.length : 30;
@@ -82,6 +84,8 @@ export async function GET(
       coverPhotoId: gallery.coverPhotoId,
       language: gallery.language,
       type: gallery.type,
+      ...(sectionTabs ? { sectionTabs } : {}),
+      ...(presentation.hero ? { hero: presentation.hero } : {}),
       ...(wedding && gallery.logoKey ? { logoUrl: getPublicUrl(gallery.logoKey) } : {}),
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
@@ -89,7 +93,7 @@ export async function GET(
       faceRecognitionEnabled: facesOn,
       ...(facesOn
         ? {
-            clusters: gallery.personClusters.map((c) => ({
+            clusters: orderGalleryPeople(gallery.personClusters, presentation).map((c) => ({
               personId: c.personId,
               size: c.size,
               color: c.color,
@@ -99,7 +103,7 @@ export async function GET(
             })),
           }
         : {}),
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
