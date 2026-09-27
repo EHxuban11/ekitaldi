@@ -157,7 +157,7 @@ test("homepage shows actual protected names and covers to admins, then redacts a
 test("the wedding's configured opening photos, people priority and hero are returned together", async () => {
   const h = harness();
   h.state.admin = { user: { name: "admin" } };
-  const event = JSON.parse(fs.readFileSync(path.join(root, "events/akassi-eta-aitor/event.json"), "utf8"));
+  const event = JSON.parse(fs.readFileSync(path.join(root, "events/akissi-eta-aitor/event.json"), "utf8"));
   const pins = event.presentation.openingPhotos;
   h.gallery.brandingJson = JSON.stringify({ presentation: event.presentation });
   h.gallery.photos = [
@@ -206,32 +206,32 @@ test("legacy/invalid presentation keeps defaults; normal galleries ignore weddin
   assert.equal(result.hero, undefined);
 });
 
-test("Akassi spelling is consistent in event settings, page titles and share metadata", async () => {
-  const event = JSON.parse(fs.readFileSync(path.join(root, "events/akassi-eta-aitor/event.json"), "utf8"));
-  assert.equal(event.name, "Akassi eta Aitor");
-  assert.equal(event.slug, "akassi-eta-aitor");
-  assert.equal(event.sourcePath, "source/Akassi eta Aitor");
-  assert.equal(event.people.labels.person_001, "Akassi");
+test("Akissi spelling is consistent in event settings, page titles and share metadata", async () => {
+  const event = JSON.parse(fs.readFileSync(path.join(root, "events/akissi-eta-aitor/event.json"), "utf8"));
+  assert.equal(event.name, "Akissi eta Aitor");
+  assert.equal(event.slug, "akissi-eta-aitor");
+  assert.equal(event.sourcePath, "source/Akissi eta Aitor");
+  assert.equal(event.people.labels.person_001, "Akissi");
   const h = harness();
   h.gallery.name = event.name;
   h.gallery.slug = event.slug;
   const meta = await h.load("app/gallery/[id]/layout.tsx").generateMetadata({ params: { id: h.gallery.id } });
-  assert.equal(meta.title, "Akassi eta Aitor");
-  assert.equal(meta.openGraph.title, "Akassi eta Aitor");
-  assert.equal(meta.twitter.title, "Akassi eta Aitor");
-  assert.equal(meta.openGraph.url, "https://www.ekitaldi.org/gallery/akassi-eta-aitor");
+  assert.equal(meta.title, "Akissi eta Aitor");
+  assert.equal(meta.openGraph.title, "Akissi eta Aitor");
+  assert.equal(meta.twitter.title, "Akissi eta Aitor");
+  assert.equal(meta.openGraph.url, "https://www.ekitaldi.org/gallery/akissi-eta-aitor");
   assert.equal(meta.alternates.canonical, meta.openGraph.url);
 });
 
 test("previously shared misspellings redirect to the correct gallery and API", async () => {
   const { default: config } = await import(new URL("../next.config.mjs", import.meta.url));
   const redirects = await config.redirects();
-  for (const legacy of ["akisi-eta-aitor", "akasi-eta-aitor"]) {
+  for (const legacy of ["akisi-eta-aitor", "akasi-eta-aitor", "akassi-eta-aitor"]) {
     const page = redirects.find((rule) => rule.source === `/gallery/${legacy}`);
-    assert.equal(page.destination, "/gallery/akassi-eta-aitor");
+    assert.equal(page.destination, "/gallery/akissi-eta-aitor");
     assert.equal(page.permanent, true);
     const api = redirects.find((rule) => rule.source === `/api/gallery/${legacy}/:path*`);
-    assert.equal(api.destination, "/api/gallery/akassi-eta-aitor/:path*");
+    assert.equal(api.destination, "/api/gallery/akissi-eta-aitor/:path*");
     assert.equal(api.permanent, true);
   }
 });

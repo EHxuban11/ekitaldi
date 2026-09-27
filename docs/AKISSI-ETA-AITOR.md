@@ -1,12 +1,12 @@
-# Akassi eta Aitor
+# Akissi eta Aitor
 
-Live gallery: https://www.ekitaldi.org/gallery/akassi-eta-aitor
+Live gallery: https://www.ekitaldi.org/gallery/akissi-eta-aitor
 
 The delivery contains 413 individual photos, 133 photo strips and 130 videos.
 The event manifest maps these to All photos, Tiras and Bideoak. Existing galleries
 continue using their original tabs. No database schema change is required.
 
-Source media and supplied face data belong in the ignored `events/akassi-eta-aitor/source/`
+Source media and supplied face data belong in the ignored `events/akissi-eta-aitor/source/`
 and `exports/` directories. They are excluded from Git and Vercel deployments.
 The gallery password is kept in the ignored `.env.local` as `GALLERY_PASSWORD`.
 
@@ -16,8 +16,8 @@ The supplied OpenCV metadata uses normalized x/y/width/height boxes; Ekitaldi's
 avatar script expects pixel x1/y1/x2/y2 boxes. Prepare the compatible copy with:
 
 ```sh
-node scripts/prepare-event-faces.mjs akassi-eta-aitor
-npm run event:check -- akassi-eta-aitor
+node scripts/prepare-event-faces.mjs akissi-eta-aitor
+npm run event:check -- akissi-eta-aitor
 ```
 
 This keeps the reviewed assignments and labels for the 413 individual photos,
@@ -36,7 +36,7 @@ existing person data; use its `--dry-run` option first.
 ## Event presentation
 
 The manifest's `presentation` settings pin the five opening photos in the
-friend's exact order, prioritize Akassi and Aitor in the people bar, display the
+friend's exact order, prioritize Akissi and Aitor in the people bar, display the
 wedding logo, and set the cover's horizontal position to 56%. These settings are
 stored in this gallery's `brandingJson`; other galleries keep their existing
 ordering and cover appearance. Person search is not enabled.
@@ -44,8 +44,8 @@ ordering and cover appearance. Person search is not enabled.
 For an existing event, preview and apply its presentation with:
 
 ```sh
-node --env-file=.env.local scripts/sync-event-presentation.mjs akassi-eta-aitor
-node --env-file=.env.local scripts/sync-event-presentation.mjs akassi-eta-aitor --apply
+node --env-file=.env.local scripts/sync-event-presentation.mjs akissi-eta-aitor
+node --env-file=.env.local scripts/sync-event-presentation.mjs akissi-eta-aitor --apply
 ```
 
 This also honors `people.avatarSelection: "reviewed"`, restoring each supplied
@@ -75,7 +75,7 @@ Run `npm test` for access and tab compatibility tests, and `npm run build` for
 production type checking and compilation. Production is the existing Vercel
 project `photo_selector` under `xubanceccons-projects`; Git pushes do not deploy it.
 
-The confirmed spelling is **Akassi**. The event manifest overrides the supplied
+The confirmed spelling is **Akissi**. The event manifest overrides the supplied
 `person_001` label through `people.labels`, preserving the original source JSON.
-The canonical URL and active event directory use `akassi-eta-aitor`. Legacy
+The canonical URL and active event directory use `akissi-eta-aitor`. Legacy
 misspelled links redirect permanently to the canonical URL.
