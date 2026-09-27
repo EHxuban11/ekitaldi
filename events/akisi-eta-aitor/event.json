@@ -63,6 +63,39 @@
     }
   ],
   "people": {
-    "consentConfirmed": true
+    "consentConfirmed": true,
+    "avatarSelection": "reviewed"
+  },
+  "presentation": {
+    "openingPhotos": [
+      {
+        "section": "todas",
+        "filename": "20260926_204704_808_IMG_4371_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204641_739_IMG_4369_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204653_364_IMG_4370_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204751_572_IMG_4372_3600..JPG"
+      },
+      {
+        "section": "todas",
+        "filename": "20260926_204803_261_IMG_4373_3600..JPG"
+      }
+    ],
+    "peopleOrder": [
+      "person_001",
+      "person_002"
+    ],
+    "hero": {
+      "showLogo": true,
+      "positionX": 56
+    }
   }
 }

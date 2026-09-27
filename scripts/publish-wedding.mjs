@@ -163,7 +163,7 @@ async function main() {
       date: opts.date || null,
       slug: opts.slug || null,
       language: opts.language || "eu",
-      brandingJson: event?.tabs ? JSON.stringify({ tabs: event.tabs }) : null,
+      brandingJson: event ? JSON.stringify({ tabs: event.tabs, presentation: event.presentation }) : null,
       passwordHash: opts.password ? hashPassword(opts.password) : null,
       faceRecognitionEnabled: !!faceData,
     },

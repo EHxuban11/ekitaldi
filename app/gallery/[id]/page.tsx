@@ -140,6 +140,7 @@ interface GalleryData {
   type?: string;
   logoUrl?: string;
   sectionTabs?: WeddingSection[];
+  hero?: { showLogo?: boolean; positionX?: number };
 }
 
 export default function GalleryPage() {
@@ -388,12 +389,13 @@ export default function GalleryPage() {
             src={coverPhoto.thumbUrl}
             alt={gallery.name}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: `${gallery.hero?.positionX ?? 50}% center` }}
           />
           <img
             src={coverPhoto.url}
             alt=""
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
-            style={{ opacity: 0 }}
+            style={{ opacity: 0, objectPosition: `${gallery.hero?.positionX ?? 50}% center` }}
             onLoad={(e) => { (e.target as HTMLImageElement).style.opacity = "1"; }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -403,6 +405,13 @@ export default function GalleryPage() {
               {t.photoGallery}
             </p>
             <div className="pb-6 sm:pb-12">
+              {gallery.hero?.showLogo && gallery.logoUrl && (
+                <img
+                  src={gallery.logoUrl}
+                  alt={`${gallery.name} logo`}
+                  className="mb-5 max-h-40 max-w-full sm:max-h-48 sm:max-w-[540px] object-contain object-left"
+                />
+              )}
               <h1
                 className="font-bold uppercase text-white text-2xl sm:text-4xl md:text-[52px]"
                 style={{ fontFamily: "var(--font-raleway), sans-serif", letterSpacing: "2.6px", margin: 0 }}

@@ -61,4 +61,8 @@ const args = [
 ];
 
 const result = spawnSync(process.execPath, args, { cwd: repoRoot, stdio: "inherit" });
-process.exit(result.status ?? 1);
+if (result.status !== 0) process.exit(result.status ?? 1);
+if (event.presentation) {
+  const presentation = spawnSync(process.execPath, ["--env-file=.env.local", "scripts/sync-event-presentation.mjs", slug, "--apply"], { cwd: repoRoot, stdio: "inherit" });
+  process.exit(presentation.status ?? 1);
+}

@@ -16,10 +16,25 @@ export default function Home() {
   const [galleries, setGalleries] = useState<PublicGallery[]>([]);
 
   useEffect(() => {
-    fetch("/api/gallery/public")
-      .then((r) => r.json())
-      .then((data) => { if (Array.isArray(data)) setGalleries(data); })
-      .catch(() => {});
+    let controller: AbortController;
+    const refresh = () => {
+      controller?.abort();
+      controller = new AbortController();
+      setGalleries([]);
+      fetch("/api/gallery/public", { cache: "no-store", signal: controller.signal })
+        .then((r) => r.json())
+        .then((data) => { if (Array.isArray(data)) setGalleries(data); })
+        .catch(() => {});
+    };
+    refresh();
+    // A login/logout in another tab must not leave stale admin details here.
+    window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      controller?.abort();
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
+    };
   }, []);
 
   return (

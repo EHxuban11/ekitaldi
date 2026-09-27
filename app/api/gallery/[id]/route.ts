@@ -6,6 +6,7 @@ import { hashPassword } from "@/lib/gallery-auth";
 import { canAccessGallery } from "@/lib/gallery-access";
 import { localEventGallery } from "@/lib/local-event-preview";
 import { parseSectionTabs } from "@/lib/wedding";
+import { parsePresentation, orderGalleryPhotos, orderGalleryPeople } from "@/lib/gallery-presentation";
 
 // Get gallery details (public — used by gallery page)
 export async function GET(
@@ -44,14 +45,8 @@ export async function GET(
       });
     }
 
-    // Sort photos: cover photo first, then by order
-    const sorted = [...gallery.photos].sort((a, b) => {
-      if (gallery.coverPhotoId) {
-        if (a.id === gallery.coverPhotoId) return -1;
-        if (b.id === gallery.coverPhotoId) return 1;
-      }
-      return a.order - b.order;
-    });
+    const presentation = gallery.type === "wedding" ? parsePresentation(gallery.brandingJson) : {};
+    const sorted = orderGalleryPhotos(gallery.photos, gallery.coverPhotoId, presentation);
 
     // Pagination: ?cursor=<index>&limit=<n> (default 30). Face galleries return
     // the full set in one response so person-filtering spans the whole gallery;
@@ -90,6 +85,7 @@ export async function GET(
       language: gallery.language,
       type: gallery.type,
       ...(sectionTabs ? { sectionTabs } : {}),
+      ...(presentation.hero ? { hero: presentation.hero } : {}),
       ...(wedding && gallery.logoKey ? { logoUrl: getPublicUrl(gallery.logoKey) } : {}),
       totalPhotos: sorted.length,
       nextCursor: hasMore ? cursor + limit : null,
@@ -97,7 +93,7 @@ export async function GET(
       faceRecognitionEnabled: facesOn,
       ...(facesOn
         ? {
-            clusters: gallery.personClusters.map((c) => ({
+            clusters: orderGalleryPeople(gallery.personClusters, presentation).map((c) => ({
               personId: c.personId,
               size: c.size,
               color: c.color,
